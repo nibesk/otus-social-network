@@ -1,22 +1,22 @@
 package app
 
 import (
-	"github.com/badThug/otus-social-network/app/database"
-	"github.com/badThug/otus-social-network/app/dispatcher"
-	"github.com/badThug/otus-social-network/config"
+	config2 "github.com/badThug/otus-social-network/app/components/config"
+	"github.com/badThug/otus-social-network/app/components/storage"
+	"github.com/badThug/otus-social-network/app/components/web"
 	"log"
 	"net/http"
 )
 
 type App struct {
-	config     *config.Config
-	db         *database.Connection
-	dispatcher *dispatcher.Dispatcher
+	config     *config2.Config
+	db         *storage.Connection
+	dispatcher web.Dispatcher
 }
 
-func Init(config *config.Config) *App {
-	db := database.Connect(config.DB)
-	dispatcher := dispatcher.Init(db)
+func Init(config *config2.Config) *App {
+	db := storage.ConnectDatabase(config.DB)
+	dispatcher := web.InitDispatcher(db, config)
 
 	app := &App{
 		db:         db,

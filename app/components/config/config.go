@@ -22,10 +22,17 @@ type DBConfig struct {
 }
 
 type Server struct {
-	HttpPort string
+	HttpPort   string
+	Env        string
+	SessionKey string
+	Host       string
 }
 
-func Init() *Config {
+func (s Server) IsDev() bool {
+	return "dev" == s.Env
+}
+
+func InitConfig() *Config {
 	return (&Config{}).initInner()
 }
 
@@ -51,7 +58,10 @@ func (c *Config) initInner() *Config {
 	}
 
 	c.Server = Server{
-		HttpPort: c.env["SERVER_HTTP_PORT"],
+		HttpPort:   c.env["SERVER_HTTP_PORT"],
+		Env:        c.env["ENVIRONMENT"],
+		SessionKey: c.env["SESSION_KEY"],
+		Host:       c.env["SERVER_HOST"],
 	}
 
 	return c

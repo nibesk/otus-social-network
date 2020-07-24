@@ -1,20 +1,19 @@
-package database
+package storage
 
 import (
 	"database/sql"
 	"fmt"
-	"github.com/badThug/otus-social-network/config"
-	"log"
-
+	"github.com/badThug/otus-social-network/app/components/config"
 	_ "github.com/go-sql-driver/mysql"
+	"log"
 )
 
 type Connection struct {
-	Config config.DBConfig
+	config config.DBConfig
 	Db     *sql.DB
 }
 
-func Connect(DBConfig config.DBConfig) *Connection {
+func ConnectDatabase(DBConfig config.DBConfig) *Connection {
 	dataSourceName := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=%s&parseTime=True",
 		DBConfig.Username,
 		DBConfig.Password,
@@ -31,7 +30,7 @@ func Connect(DBConfig config.DBConfig) *Connection {
 	db.SetMaxIdleConns(50)
 	db.SetMaxOpenConns(50)
 
-	connection := &Connection{Config: DBConfig, Db: db}
+	connection := &Connection{config: DBConfig, Db: db}
 
 	return connection
 }
