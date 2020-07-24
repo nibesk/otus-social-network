@@ -1,9 +1,5 @@
 package handlers
 
-import (
-	"net/http"
-)
-
-func (h *Handler) ViewIndexHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("<h1>Hello from index!</h1>"))
+func (h *Handler) ViewIndexHandler() {
+	h.writer.Write([]byte("<h1>Hello from index!</h1>"))
 }
