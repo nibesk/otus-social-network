@@ -1,7 +1,7 @@
 package app
 
 import (
-	config2 "github.com/badThug/otus-social-network/app/components/config"
+	"github.com/badThug/otus-social-network/app/components/config"
 	"github.com/badThug/otus-social-network/app/components/storage"
 	"github.com/badThug/otus-social-network/app/components/web"
 	"log"
@@ -9,13 +9,13 @@ import (
 )
 
 type App struct {
-	config     *config2.Config
-	db         *storage.Connection
+	config     *config.Config
+	db         *storage.DbConnection
 	dispatcher web.Dispatcher
 }
 
-func Init(config *config2.Config) *App {
-	db := storage.ConnectDatabase(config.DB)
+func Init(config *config.Config) *App {
+	db := storage.CreateDbConnection(config.DB)
 	dispatcher := web.InitDispatcher(db, config)
 
 	app := &App{

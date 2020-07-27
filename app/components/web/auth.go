@@ -25,8 +25,8 @@ var SessionAuthentication = func(next http.Handler) http.Handler {
 		// Check if user is authenticated
 		userId, ok := session.Values[storage.SessionUserIdKey].(int)
 		if !ok {
-			if IsJsonRequest(r) {
-				utils.SendResponseJsonWithStatusCode(w, utils.ResponseMessage(false, "Forbidden"), http.StatusForbidden)
+			if utils.IsJsonRequest(r) {
+				utils.SendResponseJsonWithStatusCode(w, utils.ResponseMessage(false, "Unauthorized"), http.StatusUnauthorized)
 			} else {
 				http.Error(w, "Forbidden", http.StatusForbidden)
 			}

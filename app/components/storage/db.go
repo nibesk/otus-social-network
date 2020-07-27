@@ -5,32 +5,46 @@ import (
 	"fmt"
 	"github.com/badThug/otus-social-network/app/components/config"
 	_ "github.com/go-sql-driver/mysql"
-	"log"
 )
 
-type Connection struct {
-	config config.DBConfig
-	Db     *sql.DB
+type DbConnection struct {
+	dbConfig config.DBConfig
+	db       *sql.DB
 }
 
-func ConnectDatabase(DBConfig config.DBConfig) *Connection {
+func CreateDbConnection(DBConfig config.DBConfig) *DbConnection {
+	connection := &DbConnection{dbConfig: DBConfig}
+
+	return connection
+}
+
+func (c *DbConnection) Connect() error {
 	dataSourceName := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=%s&parseTime=True",
-		DBConfig.Username,
-		DBConfig.Password,
-		DBConfig.Host,
-		DBConfig.Port,
-		DBConfig.Name,
-		DBConfig.Charset)
-	db, err := sql.Open(DBConfig.Dialect, dataSourceName)
+		c.dbConfig.Username,
+		c.dbConfig.Password,
+		c.dbConfig.Host,
+		c.dbConfig.Port,
+		c.dbConfig.Name,
+		c.dbConfig.Charset)
+
+	db, err := sql.Open(c.dbConfig.Dialect, dataSourceName)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	db.SetConnMaxLifetime(0)
 	db.SetMaxIdleConns(50)
 	db.SetMaxOpenConns(50)
 
-	connection := &Connection{config: DBConfig, Db: db}
+	c.db = db
 
-	return connection
+	return nil
+}
+
+func (c *DbConnection) Close() error {
+	return c.db.Close()
+}
+
+func (c *DbConnection) GetDb() *sql.DB {
+	return c.db
 }

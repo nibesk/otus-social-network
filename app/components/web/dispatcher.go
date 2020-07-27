@@ -3,26 +3,30 @@ package web
 import (
 	"github.com/badThug/otus-social-network/app/components/config"
 	"github.com/badThug/otus-social-network/app/components/storage"
+	"github.com/badThug/otus-social-network/app/components/utils"
+	"github.com/badThug/otus-social-network/app/handlers"
 	"github.com/gorilla/mux"
+	"github.com/pkg/errors"
 	"log"
 	"net/http"
 )
 
 type Dispatcher struct {
 	Router         *mux.Router
-	db             *storage.Connection
+	db             *storage.DbConnection
 	SessionStorage storage.SessionStorage
 }
 
 var sessionStorage storage.SessionStorage
 
-func InitDispatcher(db *storage.Connection, config *config.Config) Dispatcher {
+func InitDispatcher(db *storage.DbConnection, config *config.Config) Dispatcher {
 	router := mux.NewRouter()
 	sessionStorage = storage.InitSession(config)
 
 	dispatcher := Dispatcher{
 		Router:         router,
 		SessionStorage: sessionStorage,
+		db:             db,
 	}
 
 	initRoutes(dispatcher)
@@ -55,8 +59,27 @@ func (d *Dispatcher) Run(host string) {
 	log.Fatal(http.ListenAndServe(host, d.Router))
 }
 
-func IsJsonRequest(r *http.Request) bool {
-	contentType := r.Header.Get("Content-Type")
+func (d *Dispatcher) handleRequest(handlerMethod func(h *handlers.Handler) error) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		d.db.Connect()
+		defer d.db.Close()
 
-	return "application/json" == contentType
+		h := handlers.InitHandler(d.db, d.SessionStorage)
+		h.InitHandle(w, r)
+
+		var malformedRequest *utils.MalformedRequest
+
+		if err := handlerMethod(h); nil != err {
+			switch {
+			case errors.As(err, &malformedRequest):
+				if malformed, ok := err.(*utils.MalformedRequest); ok {
+					h.ResponseWithError(malformed.Msg, malformed.Status)
+				}
+			default:
+				h.ResponseWithError("Internal server error", http.StatusInternalServerError)
+			}
+
+			log.Printf("Error occured: %w", err)
+		}
+	}
 }

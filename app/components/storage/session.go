@@ -40,7 +40,7 @@ func (s *SessionStorage) GetSession(r *http.Request) *sessions.Session {
 //func (s *SessionStorage) WriteUserId(r *http.Request, userId int) error {
 //	session := s.GetSession(r);
 //	session.Values[SessionUserIdKey] = userId
-//	err := session.Save(r, w)
+//	err := session.CreateDbConnection(r, w)
 //
 //	return err
 //}

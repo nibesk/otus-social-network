@@ -2,12 +2,16 @@ package main
 
 import (
 	"github.com/badThug/otus-social-network/app"
-	config2 "github.com/badThug/otus-social-network/app/components/config"
+	"github.com/badThug/otus-social-network/app/components/config"
 )
 
 func main() {
-	config := config2.InitConfig()
+	config := config.InitConfig()
+
+	//test(config)
+	//os.Exit(1)
 
 	app := app.Init(config)
 	app.Run()
+
 }
