@@ -13,6 +13,10 @@ func ResponseData(status bool, data interface{}) map[string]interface{} {
 	return map[string]interface{}{"status": status, "data": data}
 }
 
+func ResponseErrors(errors interface{}) map[string]interface{} {
+	return map[string]interface{}{"status": false, "errors": errors}
+}
+
 func SendResponseJson(w http.ResponseWriter, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(data)

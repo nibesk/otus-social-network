@@ -1,7 +1,7 @@
 package models
 
 import (
-	"github.com/badThug/otus-social-network/app/components/storage"
+	"github.com/badThug/otus-social-network/app/storage"
 	"github.com/pkg/errors"
 )
 

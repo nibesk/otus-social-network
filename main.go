@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/badThug/otus-social-network/app"
-	"github.com/badThug/otus-social-network/app/components/config"
+	"github.com/badThug/otus-social-network/app/config"
 )
 
 func main() {

@@ -1,10 +1,10 @@
 package web
 
 import (
-	"github.com/badThug/otus-social-network/app/components/config"
-	"github.com/badThug/otus-social-network/app/components/storage"
-	"github.com/badThug/otus-social-network/app/components/utils"
+	"github.com/badThug/otus-social-network/app/config"
 	"github.com/badThug/otus-social-network/app/handlers"
+	"github.com/badThug/otus-social-network/app/storage"
+	"github.com/badThug/otus-social-network/app/utils"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"log"
@@ -29,6 +29,7 @@ func InitDispatcher(db *storage.DbConnection, config *config.Config) Dispatcher 
 		db:             db,
 	}
 
+	handlers.CreateValidator()
 	initRoutes(dispatcher)
 
 	return dispatcher
@@ -62,10 +63,15 @@ func (d *Dispatcher) Run(host string) {
 func (d *Dispatcher) handleRequest(handlerMethod func(h *handlers.Handler) error) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		d.db.Connect()
-		defer d.db.Close()
+		defer func() {
+			if r := recover(); r != nil {
+				log.Printf("Panic recovered in f: %w", r)
+			}
 
-		h := handlers.InitHandler(d.db, d.SessionStorage)
-		h.InitHandle(w, r)
+			d.db.Close()
+		}()
+
+		h := handlers.InitHandler(d.db, d.SessionStorage, w, r)
 
 		var malformedRequest *utils.MalformedRequest
 

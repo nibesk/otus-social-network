@@ -1,7 +1,7 @@
 package storage
 
 import (
-	"github.com/badThug/otus-social-network/app/components/config"
+	"github.com/badThug/otus-social-network/app/config"
 	"github.com/gorilla/sessions"
 	"net/http"
 )

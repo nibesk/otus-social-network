@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"github.com/badThug/otus-social-network/app/components/storage"
 	"github.com/badThug/otus-social-network/app/handlers/requests"
+	"github.com/badThug/otus-social-network/app/storage"
 	"log"
 	"math/rand"
 )
@@ -20,10 +20,13 @@ func (h *Handler) ViewRegisterHandler() error {
 }
 
 func (h *Handler) ApiLoginHandler() error {
-
 	var request *requests.RegisterRequest
 	if err := h.decodeJson(&request); nil != err {
 		return err
+	}
+
+	if violations := h.checkValidations(request); nil != violations {
+		return h.error(violations)
 	}
 
 	userId := rand.Intn(1000000)

@@ -1,9 +1,9 @@
 package app
 
 import (
-	"github.com/badThug/otus-social-network/app/components/config"
-	"github.com/badThug/otus-social-network/app/components/storage"
-	"github.com/badThug/otus-social-network/app/components/web"
+	"github.com/badThug/otus-social-network/app/config"
+	"github.com/badThug/otus-social-network/app/storage"
+	"github.com/badThug/otus-social-network/app/web"
 	"log"
 	"net/http"
 )

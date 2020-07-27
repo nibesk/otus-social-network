@@ -1,6 +1,6 @@
 package models
 
-import "github.com/badThug/otus-social-network/app/components/storage"
+import "github.com/badThug/otus-social-network/app/storage"
 
 type UserRelation struct {
 	Relation_id    int

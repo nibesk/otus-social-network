@@ -3,9 +3,9 @@ package web
 import (
 	"context"
 	"fmt"
-	"github.com/badThug/otus-social-network/app/components/storage"
-	"github.com/badThug/otus-social-network/app/components/utils"
-	"github.com/badThug/otus-social-network/app/params"
+	"github.com/badThug/otus-social-network/app/globals"
+	"github.com/badThug/otus-social-network/app/storage"
+	"github.com/badThug/otus-social-network/app/utils"
 	"net/http"
 )
 
@@ -15,7 +15,7 @@ var SessionAuthentication = func(next http.Handler) http.Handler {
 		requestPath := r.URL.Path
 
 		// check if request does not need authentication, serve the request if it doesn't need it
-		if !params.AuthorizedOnlyRoutes[requestPath] {
+		if !globals.AuthorizedOnlyRoutes[requestPath] {
 			next.ServeHTTP(w, r)
 			return
 		}

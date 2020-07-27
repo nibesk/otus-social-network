@@ -1,4 +1,4 @@
-package params
+package globals
 
 const ViewIndexRoute = "/"
 const ViewLoginRoute = "/login"
