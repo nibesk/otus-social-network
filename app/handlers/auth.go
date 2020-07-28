@@ -58,6 +58,32 @@ func (h *Handler) ApiLogoutHandler() error {
 	return h.success("Logout Success!")
 }
 
+func (h *Handler) ApiIsAuthHandler() error {
+	userId, ok := h.session.Values[storage.SessionUserIdKey].(int)
+	if !ok {
+		return h.success(map[string]interface{}{
+			"user": nil,
+		})
+	}
+
+	user, err := models.UserFindById(h.db, userId)
+	switch true {
+	case errors.Is(err, sql.ErrNoRows):
+		h.session.Values[storage.SessionUserIdKey] = nil
+		h.session.Save(h.request, h.writer)
+
+		return h.success(map[string]interface{}{
+			"user": nil,
+		})
+	case nil != err:
+		return err
+	}
+
+	return h.success(map[string]interface{}{
+		"user": user.Public(),
+	})
+}
+
 func (h *Handler) ApiRegisterHandler() error {
 	var request *requests.RegisterRequest
 	if err := h.decodeJson(&request); nil != err {

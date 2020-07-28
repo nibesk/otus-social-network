@@ -15,7 +15,10 @@ type App struct {
 }
 
 func Init(config *config.Config) *App {
-	db := storage.CreateDbConnection(config.DB)
+	db, err := storage.CreateDbConnection(config.DB)
+	if nil != err {
+		log.Fatal("can't connect to database")
+	}
 	dispatcher := web.InitDispatcher(db, config)
 
 	app := &App{

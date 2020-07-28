@@ -31,6 +31,9 @@ func initRoutes(d Dispatcher) {
 	d.Post(globals.ApiLogoutRoute, d.handleRequest(func(h *handlers.Handler) error {
 		return h.ApiLogoutHandler()
 	}))
+	d.Post(globals.ApiIsAuthRoute, d.handleRequest(func(h *handlers.Handler) error {
+		return h.ApiIsAuthHandler()
+	}))
 
 	d.Router.Use(SessionAuthentication)
 }

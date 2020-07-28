@@ -63,16 +63,12 @@ func (d *Dispatcher) Run(host string) {
 
 func (d *Dispatcher) handleRequest(handlerMethod func(h *handlers.Handler) error) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		d.db.Connect()
 		h := handlers.InitHandler(d.db, d.SessionStorage, w, r)
-
 		defer func() {
 			if r := recover(); r != nil {
 				log.Printf("Panic recovered in f: %w", r)
 				h.ResponseWithError("Internal server error", http.StatusInternalServerError)
 			}
-
-			d.db.Close()
 		}()
 
 		if err := handlerMethod(h); nil != err {
