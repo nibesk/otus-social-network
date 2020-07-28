@@ -2,6 +2,7 @@ package web
 
 import (
 	"github.com/badThug/otus-social-network/app/config"
+	"github.com/badThug/otus-social-network/app/customErrors"
 	"github.com/badThug/otus-social-network/app/handlers"
 	"github.com/badThug/otus-social-network/app/storage"
 	"github.com/badThug/otus-social-network/app/utils"
@@ -63,24 +64,23 @@ func (d *Dispatcher) Run(host string) {
 func (d *Dispatcher) handleRequest(handlerMethod func(h *handlers.Handler) error) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		d.db.Connect()
+		h := handlers.InitHandler(d.db, d.SessionStorage, w, r)
+
 		defer func() {
 			if r := recover(); r != nil {
 				log.Printf("Panic recovered in f: %w", r)
+				h.ResponseWithError("Internal server error", http.StatusInternalServerError)
 			}
 
 			d.db.Close()
 		}()
 
-		h := handlers.InitHandler(d.db, d.SessionStorage, w, r)
-
-		var malformedRequest *utils.MalformedRequest
-
 		if err := handlerMethod(h); nil != err {
-			switch {
-			case errors.As(err, &malformedRequest):
-				if malformed, ok := err.(*utils.MalformedRequest); ok {
-					h.ResponseWithError(malformed.Msg, malformed.Status)
-				}
+			switch causedErr := errors.Cause(err).(type) {
+			case *utils.MalformedRequest:
+				h.ResponseWithError(causedErr.Msg, causedErr.Status)
+			case *customErrors.TypedError:
+				h.ResponseWithError(causedErr.Msg, http.StatusBadRequest)
 			default:
 				h.ResponseWithError("Internal server error", http.StatusInternalServerError)
 			}

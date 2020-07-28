@@ -6,3 +6,8 @@ type RegisterRequest struct {
 	Password        string `validate:"required,eqfield=ConfirmPassword"`
 	ConfirmPassword string `validate:"required"`
 }
+
+type LoginRequest struct {
+	Email    string `validate:"required,email"`
+	Password string `validate:"required"`
+}

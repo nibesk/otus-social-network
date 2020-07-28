@@ -52,7 +52,7 @@ func (h *Handler) success(data interface{}) error {
 	case string:
 		message = utils.ResponseMessage(true, v)
 	default:
-		message = utils.ResponseData(true, v)
+		message = utils.ResponseData(v)
 	}
 
 	utils.SendResponseJson(h.writer, message)

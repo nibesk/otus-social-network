@@ -1,7 +1,11 @@
 package models
 
 import (
+	"fmt"
+	"github.com/VividCortex/mysqlerr"
+	"github.com/badThug/otus-social-network/app/customErrors"
 	"github.com/badThug/otus-social-network/app/storage"
+	"github.com/go-sql-driver/mysql"
 	"github.com/pkg/errors"
 )
 
@@ -14,6 +18,14 @@ type User struct {
 	Updated_at string
 }
 
+func (u *User) Public() map[string]interface{} {
+	return map[string]interface{}{
+		"user_id": u.User_id,
+		"name":    u.Name,
+		"email":   u.Email,
+	}
+}
+
 func UserCreate(conn *storage.DbConnection, name, email, password string) (*User, error) {
 	db := conn.GetDb()
 	insert, err := db.Prepare("INSERT INTO `user`(name, email, password) VALUES(?, ?, ?)")
@@ -22,7 +34,11 @@ func UserCreate(conn *storage.DbConnection, name, email, password string) (*User
 	}
 
 	result, err := insert.Exec(name, email, password)
-	if err != nil {
+	if driverErr, ok := err.(*mysql.MySQLError); ok {
+		if driverErr.Number == mysqlerr.ER_DUP_ENTRY {
+			return nil, errors.Wrap(&customErrors.TypedError{fmt.Sprintf("User with email %s already exist", email)}, driverErr.Message)
+		}
+
 		return nil, err
 	}
 
@@ -49,7 +65,21 @@ func UserFindById(conn *storage.DbConnection, userId int) (*User, error) {
 	user := &User{}
 	err := query.Scan(&user.User_id, &user.Name, &user.Email, &user.Password, &user.Created_at, &user.Updated_at)
 	if err != nil {
-		return nil, errors.Wrapf(err, "User id %d is not found", userId)
+		return nil, err
+	}
+
+	return user, nil
+}
+
+func UserFindByEmail(conn *storage.DbConnection, email string) (*User, error) {
+	db := conn.GetDb()
+
+	query := db.QueryRow("SELECT * FROM user WHERE email = ?", email)
+
+	user := &User{}
+	err := query.Scan(&user.User_id, &user.Name, &user.Email, &user.Password, &user.Created_at, &user.Updated_at)
+	if err != nil {
+		return nil, err
 	}
 
 	return user, nil

@@ -9,8 +9,8 @@ func ResponseMessage(status bool, message string) map[string]interface{} {
 	return map[string]interface{}{"status": status, "message": message}
 }
 
-func ResponseData(status bool, data interface{}) map[string]interface{} {
-	return map[string]interface{}{"status": status, "data": data}
+func ResponseData(data interface{}) map[string]interface{} {
+	return map[string]interface{}{"status": true, "data": data}
 }
 
 func ResponseErrors(errors interface{}) map[string]interface{} {
