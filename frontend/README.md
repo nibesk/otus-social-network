@@ -1,4 +1,4 @@
-# hotel_food
+# otus social
 
 ## Project setup
 ```
