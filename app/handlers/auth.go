@@ -58,7 +58,7 @@ func (h *Handler) ApiLogoutHandler() error {
 	return h.success("Logout Success!")
 }
 
-func (h *Handler) ApiIsAuthHandler() error {
+func (h *Handler) ApiGetUserHandler() error {
 	userId, ok := h.session.Values[storage.SessionUserIdKey].(int)
 	if !ok {
 		return h.success(map[string]interface{}{
