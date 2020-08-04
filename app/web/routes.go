@@ -6,22 +6,27 @@ import (
 )
 
 func initRoutes(d Dispatcher) {
+
+	// IndexHandler
 	d.Get(globals.ViewIndexRoute, d.handleRequest(func(h *handlers.Handler) error {
 		return h.ViewIndexHandler()
 	}))
-	d.Get(globals.ViewFlowRoute, d.handleRequest(func(h *handlers.Handler) error {
-		return h.ViewFlowHandler()
-	}))
-	d.Get(globals.ViewLoginRoute, d.handleRequest(func(h *handlers.Handler) error {
-		return h.ViewLoginHandler()
-	}))
-	d.Get(globals.ViewRegisterRoute, d.handleRequest(func(h *handlers.Handler) error {
-		return h.ViewRegisterHandler()
-	}))
 
-	d.Post(globals.ApiFriendRoute, d.handleRequest(func(h *handlers.Handler) error {
+	// FriendsHandler
+	d.Post(globals.ApiFriendsRoute, d.handleRequest(func(h *handlers.Handler) error {
 		return h.ApiAddFriendHandler()
 	}))
+	d.Get(globals.ApiFriendsRoute, d.handleRequest(func(h *handlers.Handler) error {
+		return h.ApiGetFriendsHandler()
+	}))
+	d.Post(globals.ApiRemoveFriendsRoute, d.handleRequest(func(h *handlers.Handler) error {
+		return h.ApiDeleteFriendHandler()
+	}))
+	d.Get(globals.ApiAvailableFriendRoute, d.handleRequest(func(h *handlers.Handler) error {
+		return h.ApiGetAvailableFriendsHandler()
+	}))
+
+	// AuthHandler
 	d.Post(globals.ApiLoginRoute, d.handleRequest(func(h *handlers.Handler) error {
 		return h.ApiLoginHandler()
 	}))

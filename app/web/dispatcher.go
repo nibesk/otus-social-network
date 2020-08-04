@@ -77,6 +77,8 @@ func (d *Dispatcher) handleRequest(handlerMethod func(h *handlers.Handler) error
 				h.ResponseWithError(causedErr.Msg, causedErr.Status)
 			case *customErrors.TypedError:
 				h.ResponseWithError(causedErr.Msg, http.StatusBadRequest)
+			case *customErrors.TypedStatusError:
+				h.ResponseWithError(causedErr.Msg, causedErr.Status)
 			default:
 				h.ResponseWithError("Internal server error", http.StatusInternalServerError)
 			}

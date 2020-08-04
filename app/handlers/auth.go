@@ -9,21 +9,9 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (h *Handler) ViewLoginHandler() error {
-	h.writer.Write([]byte("<h1>Hello from Login!</h1>"))
-
-	return nil
-}
-
-func (h *Handler) ViewRegisterHandler() error {
-	h.writer.Write([]byte("<h1>Hello from Login!</h1>"))
-
-	return nil
-}
-
 func (h *Handler) ApiLoginHandler() error {
 	var request *requests.LoginRequest
-	if err := h.decodeJson(&request); nil != err {
+	if err := h.decodeRequest(&request); nil != err {
 		return err
 	}
 
@@ -86,7 +74,7 @@ func (h *Handler) ApiGetUserHandler() error {
 
 func (h *Handler) ApiRegisterHandler() error {
 	var request *requests.RegisterRequest
-	if err := h.decodeJson(&request); nil != err {
+	if err := h.decodeRequest(&request); nil != err {
 		return err
 	}
 
@@ -94,8 +82,8 @@ func (h *Handler) ApiRegisterHandler() error {
 		return h.error(violations)
 	}
 
-	_, ok := h.session.Values[storage.SessionUserIdKey].(int)
-	if ok {
+	_, err := h.getSessionUserId()
+	if nil == err {
 		return h.error("You are already logged in")
 	}
 
@@ -104,7 +92,18 @@ func (h *Handler) ApiRegisterHandler() error {
 		return err
 	}
 
-	user, err := models.UserCreate(h.db, request.Name, request.Email, hashedPwd)
+	user := &models.User{
+		Name:      request.Name,
+		Email:     request.Email,
+		Password:  hashedPwd,
+		Surname:   request.Surname,
+		Age:       request.Age,
+		City:      request.City,
+		Interests: request.Interests,
+		Sex:       request.Sex,
+	}
+
+	_, err = models.UserCreate(h.db, user)
 	if nil != err {
 		return err
 	}

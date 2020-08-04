@@ -15,7 +15,7 @@ var SessionAuthentication = func(next http.Handler) http.Handler {
 		requestPath := r.URL.Path
 
 		// check if request does not need authentication, serve the request if it doesn't need it
-		if !globals.AuthorizedOnlyRoutes[requestPath] {
+		if globals.NonAuthorizedOnlyRoutes[requestPath] {
 			next.ServeHTTP(w, r)
 			return
 		}

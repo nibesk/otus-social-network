@@ -8,7 +8,7 @@ import RegisterPage from "../pages/RegisterPage";
 import {routes} from '../router/routes'
 import FlowPage from "../pages/FlowPage";
 import NotFoundPage from "../pages/NotFoundPage";
-import {checkMultipleVue} from "bootstrap-vue/esm/utils/plugins";
+import FriendsPage from "../pages/FriendsPage";
 
 Vue.use(Router);
 
@@ -19,6 +19,11 @@ const router = new Router({
             path: routes.index,
             name: 'index',
             component: IndexPage
+        },
+        {
+            path: routes.friends,
+            name: 'friends',
+            component: FriendsPage
         },
         {
             path: routes.flow,
@@ -42,49 +47,6 @@ const router = new Router({
         },
     ]
 });
-
-/**
- * Валидация перед переходом на внутренню страницу
- *
- * @param {object} to - Слудующий роут
- * @param {object} from - Предыдущий роут
- * @param {function} next - Функция перехода на вызванный
- */
-const ifAuthorized = async (to, from, next) => {
-    // if (null !== store.getters['user/getUser']) {
-    //     next();
-    //     return ;
-    // }
-    //
-    // await store.dispatch(`user/checkAuth`);
-    //
-    // if (null !== store.getters['user/getUser']) {
-    //     next();
-    // } else {
-    //     next({name: `login`});
-    // }
-};
-
-/**
- * Валидация перед переходом на внешнюю страницу (авторизация, регистрация и тд)
- *
- * @param {object} to - Слудующий роут
- * @param {object} from - Предыдущий роут
- * @param {function} next - Функция перехода на вызванный
- */
-const ifNotAuthorized = async (to, from, next) => {
-    // if (null !== store.getters['user/getUser']) {
-    //
-    //     await store.dispatch(`user/checkAuth`);
-    //
-    //     if (null === store.getters['user/getUser']) {
-    //         next();
-    //         return;
-    //     }
-    // }
-    //
-    // next({name: `home`});
-};
 
 const CheckPublicPathsAvailability = async (to, from, next) => {
     if (null !== store.getters['user/getUser']) {
@@ -126,8 +88,6 @@ const CheckPrivetPagesAvailability = async (to, from, next) => {
         next({name: `login`});
     }
 };
-
-
 
 router.beforeEach(async (to, from, next) => {
     switch (to.name) {

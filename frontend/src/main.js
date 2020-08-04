@@ -20,7 +20,7 @@ sync(store, router);
 Vue.config.productionTip = false;
 
 /* eslint-disable no-new */
-new Vue({
+const vue = new Vue({
   el: '#app',
   router,
   store,

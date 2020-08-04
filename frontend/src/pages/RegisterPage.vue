@@ -1,57 +1,100 @@
 <template>
-  <div class="row centered">
-    <form class="form-signin text-center">
-      <h1 class="h3 mb-3 font-weight-normal">Sign up</h1>
+    <form class="text-center">
+        <h1 class="h3 mb-3 font-weight-normal">Sign up</h1>
 
-      <input v-model="name" type="text" class="form-control" placeholder="Name" required="" autofocus="">
+        <div class="row justify-content-center">
+            <div class="col-md-3">
+                <input v-model="name" type="text" class="form-control" placeholder="Name" required="" autofocus="">
 
-      <input v-model="email" type="email" class="form-control" placeholder="Email address" required="" autofocus="">
+                <input v-model="surname" type="text" class="form-control mt-2" placeholder="Surname" required="" autofocus="">
 
-      <input v-model="password" type="password" class="form-control mt-2" placeholder="Password" required="">
+                <input v-model.number="age" type="number" class="form-control mt-2" placeholder="Age" required="" autofocus="">
 
-      <input v-model="confirmPassword" type="password" class="form-control mt-2" placeholder="Confirm password" required="">
+                <input v-model="city" type="text" class="form-control mt-2" placeholder="City" required="" autofocus="">
 
-      <button @click.prevent="submit" class="btn btn-lg btn-primary btn-block mt-2" type="submit">Submit</button>
+                <b-form-select v-model="sex" class="mt-2" :options="sexOptions">
+                    <template v-slot:first>
+                        <b-form-select-option :value="null" disabled>Sex</b-form-select-option>
+                    </template>
+                </b-form-select>
+
+                <b-form-textarea
+                    id="textarea"
+                    v-model="interests"
+                    placeholder="Interests"
+                    class="mt-2"
+                    rows="3"
+                    max-rows="6"
+                ></b-form-textarea>
+            </div>
+
+            <div class="col-md-3">
+                <input v-model="email" type="email" class="form-control" placeholder="Email address" required="" autofocus="">
+
+                <input v-model="password" type="password" class="form-control mt-2" placeholder="Password" required="">
+
+                <input v-model="confirmPassword" type="password" class="form-control mt-2" placeholder="Confirm password" required="">
+
+                <button @click.prevent="submit" class="btn btn-lg btn-primary btn-block mt-2" type="submit">Submit</button>
+            </div>
+        </div>
     </form>
-  </div>
 </template>
 
 <script>
-  import { mapActions, mapGetters } from 'vuex'
-  export default {
-      data: () => ({
-          email: null,
-          name: null,
-          password: null,
-          confirmPassword: null,
-      }),
+    import {mapActions} from 'vuex'
 
-      methods: {
-          ...mapActions('user', ['register']),
+    export default {
+        name: `RegisterPage`,
 
-          async submit() {
+        data: () => ({
+            email: null,
+            name: null,
+            surname: null,
+            age: null,
+            city: null,
+            interests: null,
+            sex: null,
+            password: null,
+            confirmPassword: null,
 
-              const responseMessage = await this.register({
-                  email: this.email,
-                  name: this.name,
-                  password: this.password,
-                  confirmPassword: this.confirmPassword
-              });
+            sexOptions: [
+                {value: 1, text: 'Male'},
+                {value: 2, text: 'Female'},
+                {value: 3, text: 'Other'},
+            ]
+        }),
 
-              if (responseMessage.status) {
-                  this.$toast.success('Register success');
-                  this.$router.push({name: 'flow'})
-              }
-          }
-      }
-  }
+        methods: {
+            ...mapActions('user', ['register']),
+
+            async submit() {
+                const responseMessage = await this.register({
+                    email: this.email,
+                    name: this.name,
+                    password: this.password,
+                    confirm_password: this.confirmPassword,
+                    surname: this.surname,
+                    age: this.age,
+                    city: this.city,
+                    interests: this.interests,
+                    sex: this.sex,
+                });
+
+                if (responseMessage.status) {
+                    this.$toast.success('Register success');
+                    this.$router.push({name: 'flow'})
+                }
+            }
+        }
+    }
 </script>
 
 <style>
-  .form-signin {
-    width: 100%;
-    max-width: 330px;
-    padding: 15px;
-    margin: 0 auto;
-  }
+    .form-signin {
+        width: 100%;
+        max-width: 330px;
+        padding: 15px;
+        margin: 0 auto;
+    }
 </style>

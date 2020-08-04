@@ -7,11 +7,6 @@ import (
 
 func main() {
 	config := config.InitConfig()
-
-	//test(config)
-	//os.Exit(1)
-
 	app := app.Init(config)
 	app.Run()
-
 }

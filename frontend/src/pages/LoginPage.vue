@@ -1,14 +1,18 @@
 <template>
-    <div class="row centered">
-        <form class="form-signin text-center">
-            <h1 class="h3 mb-3 font-weight-normal">Log in</h1>
+    <div class="text-center">
+        <div class="row justify-content-center">
+            <div class="col-md-3">
+                <form class="text-center">
+                    <h1 class="h3 mb-3 font-weight-normal">Log in</h1>
 
-            <input v-model="email" type="email" class="form-control" placeholder="Email address" required="" autofocus="">
+                    <input v-model="email" type="email" class="form-control" placeholder="Email address" required="" autofocus="">
 
-            <input v-model="password" type="password" class="form-control mt-2" placeholder="Password" required="">
+                    <input v-model="password" type="password" class="form-control mt-2" placeholder="Password" required="">
 
-            <button @click.prevent="submit" class="btn btn-lg btn-primary btn-block mt-2" type="submit">Submit</button>
-        </form>
+                    <button @click.prevent="submit" class="btn btn-lg btn-primary btn-block mt-2" type="submit">Submit</button>
+                </form>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -16,6 +20,8 @@
     import {mapActions} from 'vuex';
 
     export default {
+        name: `NamePage`,
+
         data: () => ({
             email: null,
             password: null,

@@ -1,6 +1,13 @@
 package models
 
-import "github.com/badThug/otus-social-network/app/storage"
+import (
+	"database/sql"
+	"github.com/VividCortex/mysqlerr"
+	"github.com/badThug/otus-social-network/app/customErrors"
+	"github.com/badThug/otus-social-network/app/storage"
+	"github.com/go-sql-driver/mysql"
+	"github.com/pkg/errors"
+)
 
 type UserRelation struct {
 	Relation_id    int
@@ -18,7 +25,11 @@ func UserRelationCreate(conn *storage.DbConnection, userId, friendUserId int) (*
 	}
 
 	result, err := insert.Exec(userId, friendUserId)
-	if err != nil {
+	if driverErr, ok := err.(*mysql.MySQLError); ok {
+		if driverErr.Number == mysqlerr.ER_DUP_ENTRY {
+			return nil, errors.Wrap(&customErrors.TypedError{"User already have this relation"}, driverErr.Message)
+		}
+
 		return nil, err
 	}
 
@@ -34,4 +45,78 @@ func UserRelationCreate(conn *storage.DbConnection, userId, friendUserId int) (*
 	}
 
 	return userRelation, nil
+}
+
+func UserRelationDelete(conn *storage.DbConnection, userId, friendUserId int) error {
+	db := conn.GetDb()
+	insert, err := db.Prepare("DELETE FROM user_relation WHERE user_id = ? AND friend_user_id = ?")
+	if err != nil {
+		return err
+	}
+
+	result, err := insert.Exec(userId, friendUserId)
+	if err != nil {
+		return err
+	}
+
+	cnt, err := result.RowsAffected()
+	if nil != err {
+		return err
+	}
+
+	if 0 == cnt {
+		return sql.ErrNoRows
+	}
+
+	return nil
+}
+
+func UserRelationFindByIds(conn *storage.DbConnection, userId, friendUserId int) (*UserRelation, error) {
+	db := conn.GetDb()
+
+	query := db.QueryRow("SELECT * FROM user_relation WHERE user_id = ? and friend_user_id = ?", userId, friendUserId)
+
+	userRelation := &UserRelation{}
+	err := userRelationQueryScan(query.Scan, userRelation)
+	if err != nil {
+		return nil, err
+	}
+
+	return userRelation, nil
+}
+
+func UserRelationFindByUserId(conn *storage.DbConnection, userId int) ([]*UserRelation, error) {
+	db := conn.GetDb()
+
+	query, err := db.Query("SELECT * FROM user_relation WHERE user_id = ?", userId)
+	if err != nil {
+		return nil, err
+	}
+
+	collection := []*UserRelation{}
+	for query.Next() {
+		userRelation := &UserRelation{}
+		err := userRelationQueryScan(query.Scan, userRelation)
+		if err != nil {
+			return nil, err
+		}
+		collection = append(collection, userRelation)
+	}
+
+	return collection, nil
+}
+
+func userRelationQueryScan(scan func(dest ...interface{}) error, userRelation *UserRelation) error {
+	err := scan(
+		&userRelation.Relation_id,
+		&userRelation.User_id,
+		&userRelation.Friend_user_id,
+		&userRelation.Created_at,
+		&userRelation.Updated_at)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

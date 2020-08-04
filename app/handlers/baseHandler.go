@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"github.com/badThug/otus-social-network/app/customErrors"
 	"github.com/badThug/otus-social-network/app/storage"
 	"github.com/badThug/otus-social-network/app/utils"
 	"github.com/go-playground/validator"
@@ -41,7 +42,7 @@ func (h *Handler) ResponseWithError(msg string, statusCode int) {
 	}
 }
 
-func (h *Handler) decodeJson(obj interface{}) error {
+func (h *Handler) decodeRequest(obj interface{}) error {
 	return utils.DecodeJSONBody(&obj, h.writer, h.request)
 }
 
@@ -88,4 +89,13 @@ func (h *Handler) checkValidations(s interface{}) []string {
 	}
 
 	return nil
+}
+
+func (h *Handler) getSessionUserId() (int, error) {
+	userId, ok := h.session.Values[storage.SessionUserIdKey].(int)
+	if !ok {
+		return 0, &customErrors.TypedStatusError{"Not authorized", http.StatusUnauthorized}
+	}
+
+	return userId, nil
 }

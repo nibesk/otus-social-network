@@ -8,7 +8,7 @@
 </template>
 
 <script>
-import HeaderBar from '@/components/HeaderBar'
+import HeaderBar from 'components/HeaderBar'
 import {mapGetters, mapState} from "vuex";
 export default {
   components: {
