@@ -5,6 +5,7 @@ Description=gosocialotus
 Type=simple
 Restart=always
 RestartSec=5s
+WorkingDirectory=/var/www/otus-social-network
 ExecStart=/var/www/otus-social-network/build
 
 [Install]
