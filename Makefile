@@ -1,8 +1,11 @@
 env:
-	cp .env.example .env
+	cp example.env .env
 
 build-frontend:
-	cd frontend && npm run build
+	cd frontend && npm install && npm run build
 
 build-backend:
-	go build -o ./build
+	go install && go build -o ./build
+
+start-backend-service:
+	sudo service gosocialotus start

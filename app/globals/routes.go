@@ -14,6 +14,7 @@ const ApiAvailableFriendRoute = "/api/availableFriends"
 var NonAuthorizedOnlyRoutes = map[string]bool{
 	ApiLoginRoute:    true,
 	ApiRegisterRoute: true,
+	ApiGetUserRoute:  true,
 
 	ViewIndexRoute: true,
 }

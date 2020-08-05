@@ -1,0 +1,11 @@
+[Unit]
+Description=gosocialotus
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=5s
+ExecStart=/var/www/otus-social-network/build
+
+[Install]
+WantedBy=multi-user.target
