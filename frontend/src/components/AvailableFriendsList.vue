@@ -15,7 +15,7 @@
 </template>
 
 <script>
-import {mapGetters, mapActions} from 'vuex'
+import {mapGetters, mapActions, mapMutations} from 'vuex'
 
 export default {
     name: `FriendsList`,
@@ -31,8 +31,11 @@ export default {
 
     methods: {
         ...mapActions('friends', ['apiAvailableGetFriends', 'apiAddFriend', 'apiDeleteFriend']),
+        ...mapMutations('system', ['LOADER_ACTIVE', 'LOADER_DISABLE']),
 
         async addFriend(user) {
+            this.LOADER_ACTIVE();
+
             const responseMessage = await this.apiAddFriend({
                 friend_user_id: user.user_id,
             });
@@ -40,9 +43,13 @@ export default {
             if (responseMessage.status) {
                 this.$toast.success('Friend has been added');
             }
+
+            this.LOADER_DISABLE();
         },
 
         async deleteFriend(user) {
+            this.LOADER_ACTIVE();
+
             const responseMessage = await this.apiDeleteFriend({
                 friend_user_id: user.user_id,
             });
@@ -50,6 +57,8 @@ export default {
             if (responseMessage.status) {
                 this.$toast.success('Friend has been removed');
             }
+
+            this.LOADER_DISABLE();
         }
     }
 }

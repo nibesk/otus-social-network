@@ -1,5 +1,5 @@
 <template>
-    <div class="card" v-if="null !== getUser">
+    <div class="card mb-2" v-if="null !== getUser">
         <img src="social.jpg" alt="Image" class="card-img-top">
 
         <div class="card-header">
