@@ -8,7 +8,7 @@ Type=simple
 Restart=always
 RestartSec=5s
 WorkingDirectory=/var/www/otus-social-network
-ExecStart=/usr/bin/sh -c 'exec /var/www/otus-social-network/build >> /var/log/otus-social_log_stdout.log 2>> /var/log/otus-social_log_stderr.log'
+ExecStart=/bin/sh -c 'exec /var/www/otus-social-network/build >> /var/log/otus-social_log_stdout.log 2>> /var/log/otus-social_log_stderr.log'
 
 [Install]
 WantedBy=multi-user.target
