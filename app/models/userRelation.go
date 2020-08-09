@@ -10,11 +10,11 @@ import (
 )
 
 type UserRelation struct {
-	Relation_id    int
-	User_id        int
-	Friend_user_id int
-	Created_at     string
-	Updated_at     string
+	Relation_id    int    `json:"relation_id"`
+	User_id        int    `json:"user_id"`
+	Friend_user_id int    `json:"friend_user_id"`
+	Created_at     string `json:"-"`
+	Updated_at     string `json:"-"`
 }
 
 func UserRelationCreate(conn *storage.DbConnection, userId, friendUserId int) (*UserRelation, error) {

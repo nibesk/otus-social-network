@@ -15,17 +15,17 @@ const SexFemale = 2
 const SexOther = 3
 
 type User struct {
-	User_id    int
-	Name       string
-	Email      string
-	Surname    string
-	Age        int
-	Interests  string
-	City       string
-	Sex        int
-	Password   string
-	Created_at string
-	Updated_at string
+	User_id    int    `json:"user_id"`
+	Name       string `json:"name"`
+	Email      string `json:"email"`
+	Surname    string `json:"surname"`
+	Age        int    `json:"age"`
+	Interests  string `json:"interests"`
+	City       string `json:"city"`
+	Sex        int    `json:"sex"`
+	Password   string `json:"-"`
+	Created_at string `json:"-"`
+	Updated_at string `json:"-"`
 }
 
 func (u *User) getSexTitle() string {

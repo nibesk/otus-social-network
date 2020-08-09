@@ -35,7 +35,7 @@ func (h *Handler) ApiLoginHandler() error {
 	h.session.Save(h.request, h.writer)
 
 	return h.success(map[string]interface{}{
-		"user": user.Public(),
+		"user": user,
 	})
 }
 
