@@ -43,6 +43,7 @@
 
 <script>
     import {mapActions} from 'vuex'
+    import crypto from 'crypto-js'
 
     export default {
         name: `RegisterPage`,
@@ -69,11 +70,13 @@
             ...mapActions('user', ['register']),
 
             async submit() {
+                const pwd = crypto.MD5(this.password).toString();
+
                 const responseMessage = await this.register({
                     email: this.email,
                     name: this.name,
-                    password: this.password,
-                    confirm_password: this.confirmPassword,
+                    password: pwd,
+                    confirm_password: pwd,
                     surname: this.surname,
                     age: this.age,
                     city: this.city,

@@ -18,6 +18,7 @@
 
 <script>
     import {mapActions} from 'vuex';
+    import crypto from 'crypto-js'
 
     export default {
         name: `NamePage`,
@@ -36,7 +37,7 @@
                     return;
                 }
 
-                const responseMessage = await this.login({email: this.email, password: this.password});
+                const responseMessage = await this.login({email: this.email, password: crypto.MD5(this.password).toString()});
                 if (responseMessage.status) {
                     this.$toast.success('Login success');
                     this.$router.push({name: 'flow'})

@@ -6,9 +6,13 @@ build-frontend:
  	npm run build --prefix ./frontend
 
 build-backend:
-	go install && go build -o ./build
+	go install && \
+ 	go build -o ./build
 
-start-backend-service:
+backend-service-start:
 	sudo service gosocialotus start
 
-build: build-frontend build-backend
+backend-service-restart:
+	sudo service gosocialotus restart
+
+build: build-frontend build-backend backend-service-restart
