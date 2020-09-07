@@ -1,12 +1,15 @@
 import {httpRequest, RequestMessage} from '../api/http'
 import {routes} from "../router/routes";
+import _ from 'lodash'
 
 export default {
     namespaced: true,
 
     state: () => ({
         friends: [],
-        availableFriends: []
+        availableFriends: [],
+        lastViewedUserId: null,
+        lastLoadedAvailableFriendsBatch: [],
     }),
 
     actions: {
@@ -21,12 +24,18 @@ export default {
             return responseMessage
         },
 
-        async apiAvailableGetFriends({commit}) {
-            const {responseMessage} = await httpRequest.get(routes.api.availableFriends);
+        async apiAvailableGetFriends({commit, state}) {
+            let url = routes.api.availableFriends;
+            if (null !== state.lastViewedUserId) {
+                url += `?lastViewedUserId=${state.lastViewedUserId}`
+            }
+
+            const {responseMessage} = await httpRequest.get(url);
 
             if (responseMessage.status) {
                 const {users} = responseMessage.data;
-                commit('SET_AVAILABLE_FRIENDS', users);
+                commit('PUSH_AVAILABLE_FRIENDS', users);
+                commit('SET_LAST_LOADED_AVAILABLE_FRIENDS_BATCH', users);
             }
 
             return responseMessage
@@ -58,6 +67,19 @@ export default {
     },
 
     mutations: {
+        SET_LAST_LOADED_AVAILABLE_FRIENDS_BATCH(state, lastLoadedAvailableFriendsBatch) {
+            state.lastLoadedAvailableFriendsBatch = lastLoadedAvailableFriendsBatch;
+            if (lastLoadedAvailableFriendsBatch.length > 0) {
+                const lastUserInBatch = _.last(lastLoadedAvailableFriendsBatch);
+                console.log(lastUserInBatch);
+                state.lastViewedUserId = lastUserInBatch.user_id;
+            }
+        },
+        RESET_AVAILABLE_FRIENDS(state) {
+            state.lastLoadedAvailableFriendsBatch = [];
+            state.lastViewedUserId = null;
+            state.availableFriends = [];
+        },
         SET_FRIENDS(state, friends) {
             state.friends = friends
         },
@@ -67,8 +89,8 @@ export default {
         REMOVE_USER_FROM_FRIENDS(state, user) {
             state.friends = state.friends.filter((friend) => user.user_id !== friend.user_id);
         },
-        SET_AVAILABLE_FRIENDS(state, availableFriends) {
-            state.availableFriends = availableFriends
+        PUSH_AVAILABLE_FRIENDS(state, availableFriends) {
+            state.availableFriends.push(...availableFriends)
         },
         CHANGE_AVAILABLE_FRIEND_STATUS(state, payload) {
             state.availableFriends.forEach((friend) => {
@@ -82,5 +104,7 @@ export default {
     getters: {
         getFriends: state => state.friends,
         getAvailableFriends: state => state.availableFriends,
+        getLastViewedUserId: state => state.lastViewedUserId,
+        getLastLoadedAvailableFriendsBatch: state => state.lastLoadedAvailableFriendsBatch,
     }
 }

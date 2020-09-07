@@ -8,10 +8,14 @@ import './plugins';
 import {routes} from './router/routes';
 import { sync } from 'vuex-router-sync';
 import BootstrapVue from "bootstrap-vue";
+import InfiniteLoading from 'vue-infinite-loading'
+
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
+import 'assets/css/global.css'
 
 Vue.use(BootstrapVue);
+Vue.use(InfiniteLoading, { /* options */ });
 
 Vue.prototype.$routes = routes;
 

@@ -2,15 +2,17 @@
     <ul class="list-group">
         <li v-for="friend in getAvailableFriends" class="list-group-item available_friend_item">
             <div>
-                <p class="mb-0">{{ friend.name}} ({{ friend.email }})</p>
-                <p class="mb-0">From {{ friend.city }}</p>
-                <p class="mb-0">Age {{ friend.age }}</p>
+                <p class="mb-0 friend__name">{{ friend.name }} {{ friend.surname }} ({{ friend.city }})</p>
+                <p class="mb-0 friend__email">{{ friend.age }} years old</p>
+                <p class="mb-0 friend__email">{{ friend.email }}</p>
             </div>
             <div >
                 <button v-if="!friend.is_friend" @click="addFriend(friend)" class="btn btn-success">Add friend</button>
                 <button v-else class="btn btn-danger" @click="deleteFriend(friend)">Remove</button>
             </div>
         </li>
+
+        <infinite-loading @infinite="infiniteHandler"></infinite-loading>
     </ul>
 </template>
 
@@ -22,11 +24,7 @@ export default {
 
     computed: {
         ...mapGetters('user', ['getUser']),
-        ...mapGetters('friends', ['getAvailableFriends']),
-    },
-
-    async mounted() {
-        await this.apiAvailableGetFriends();
+        ...mapGetters('friends', ['getAvailableFriends', 'getLastLoadedAvailableFriendsBatch']),
     },
 
     methods: {
@@ -59,6 +57,16 @@ export default {
             }
 
             this.LOADER_DISABLE();
+        },
+
+        async infiniteHandler($state) {
+            await this.apiAvailableGetFriends();
+
+            if (this.getLastLoadedAvailableFriendsBatch.length > 0) {
+                $state.loaded();
+            } else {
+                $state.complete()
+            }
         }
     }
 }

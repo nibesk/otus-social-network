@@ -2,19 +2,22 @@ export default {
     namespaced: true,
 
     state: () => ({
-        loader: false
+        loader: 0
     }),
 
     mutations: {
         LOADER_ACTIVE(state) {
-            state.loader = true
+            state.loader++
         },
         LOADER_DISABLE(state) {
-            state.loader = false
+            if (0 === state.loader) {
+                return;
+            }
+            state.loader--
         },
     },
 
     getters: {
-        getLoader: state => state.loader,
+        getLoader: state => 0 !== state.loader,
     }
 }

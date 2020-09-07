@@ -1,0 +1,9 @@
+.friend__name {
+    font-weight: bold;
+    font-size: larger;
+}
+
+.friend__email {
+    font-style: italic;
+    font-size: small;
+}

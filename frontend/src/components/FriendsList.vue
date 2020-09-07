@@ -2,9 +2,9 @@
     <ul class="list-group">
         <li v-for="friend in getFriends" class="list-group-item friend_item">
             <div>
-                <p class="mb-0">{{ friend.name}} ({{ friend.email }})</p>
-                <p class="mb-0">From {{ friend.city }}</p>
-                <p class="mb-0">Age {{ friend.age }}</p>
+                <p class="mb-0 friend__name">{{ friend.name }} {{ friend.surname }} ({{ friend.city }})</p>
+                <p class="mb-0 friend__email">{{ friend.age }} years old</p>
+                <p class="mb-0 friend__email">{{ friend.email }}</p>
             </div>
             <div>
                 <button @click="deleteFriend(friend)" class="btn btn-danger">Remove</button>

@@ -96,10 +96,10 @@ func UserFindById(conn *storage.DbConnection, userId int) (*User, error) {
 	return user, nil
 }
 
-func UserFindAllExceptUserId(conn *storage.DbConnection, userId int) ([]*User, error) {
+func UserFindAllExceptUserId(conn *storage.DbConnection, userId, limit, lastViewedId int) ([]*User, error) {
 	db := conn.GetDb()
 
-	query, err := db.Query("SELECT * FROM user WHERE user_id != ?", userId)
+	query, err := db.Query("SELECT * FROM user WHERE user_id > ? AND user_id != ? ORDER BY user_id ASC LIMIT ?", lastViewedId, userId, limit)
 	if err != nil {
 		return nil, err
 	}
