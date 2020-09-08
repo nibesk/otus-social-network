@@ -47,6 +47,8 @@ class HttpRequest {
     }
 
     async execute(requestFunction, path, requestMessage, headers) {
+        console.log(`start execute request`, {requestFunction, path, requestMessage, headers});
+
         let response = null;
         const responseMessage = new ResponseMessage();
 

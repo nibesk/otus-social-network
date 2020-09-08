@@ -3,11 +3,9 @@ package handlers
 import (
 	"database/sql"
 	"fmt"
-	"github.com/badThug/otus-social-network/app/globals"
 	"github.com/badThug/otus-social-network/app/handlers/requests"
 	"github.com/badThug/otus-social-network/app/models"
 	"github.com/pkg/errors"
-	"strconv"
 )
 
 func (h *Handler) ApiGetAvailableFriendsHandler() error {
@@ -16,12 +14,13 @@ func (h *Handler) ApiGetAvailableFriendsHandler() error {
 		return err
 	}
 
-	lastViewedUserId, err := strconv.Atoi(h.request.URL.Query().Get("lastViewedUserId"))
-	if nil != err {
-		lastViewedUserId = 0
+	request := requests.AvailableFriendsRequest{}
+	request.Parse(h.request)
+	if violations := h.checkValidations(request); nil != violations {
+		return h.error(violations)
 	}
 
-	users, err := models.UserFindAllExceptUserId(h.db, userId, globals.DefaultScrollLimit, lastViewedUserId)
+	users, err := models.UserFindAllExceptUserId(h.db, userId, request)
 	if nil != err {
 		return err
 	}

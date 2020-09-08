@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/VividCortex/mysqlerr"
 	"github.com/badThug/otus-social-network/app/customErrors"
+	"github.com/badThug/otus-social-network/app/globals"
+	"github.com/badThug/otus-social-network/app/handlers/requests"
 	"github.com/badThug/otus-social-network/app/storage"
 	"github.com/go-sql-driver/mysql"
 	"github.com/pkg/errors"
@@ -96,10 +98,26 @@ func UserFindById(conn *storage.DbConnection, userId int) (*User, error) {
 	return user, nil
 }
 
-func UserFindAllExceptUserId(conn *storage.DbConnection, userId, limit, lastViewedId int) ([]*User, error) {
+func UserFindAllExceptUserId(conn *storage.DbConnection, userId int, searchParams requests.AvailableFriendsRequest) ([]*User, error) {
 	db := conn.GetDb()
+	queryParams := []interface{}{}
+	scrollSth := ""
+	if 0 != searchParams.LastViewedUserId {
+		scrollSth = " AND user_id > ? "
+		queryParams = append(queryParams, searchParams.LastViewedUserId)
+	}
 
-	query, err := db.Query("SELECT * FROM user WHERE user_id > ? AND user_id != ? ORDER BY user_id ASC LIMIT ?", lastViewedId, userId, limit)
+	likeSearchSth := ""
+	if "" != searchParams.Name && "" != searchParams.Surname {
+		likeSearchSth = " AND name LIKE ? AND surname LIKE ? "
+		queryParams = append(queryParams, searchParams.Name+"%", searchParams.Surname+"%")
+	}
+
+	queryParams = append(queryParams, globals.DefaultScrollLimit)
+
+	sth := fmt.Sprintf("SELECT * FROM user WHERE 1=1 %s %s ORDER BY user_id ASC LIMIT ?", scrollSth, likeSearchSth)
+
+	query, err := db.Query(sth, queryParams...)
 	if err != nil {
 		return nil, err
 	}
@@ -110,6 +128,9 @@ func UserFindAllExceptUserId(conn *storage.DbConnection, userId, limit, lastView
 		err := userQueryScan(query.Scan, user)
 		if err != nil {
 			return nil, err
+		}
+		if userId == user.User_id {
+			continue
 		}
 		collection = append(collection, user)
 	}

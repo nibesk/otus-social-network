@@ -24,13 +24,17 @@ export default {
             return responseMessage
         },
 
-        async apiAvailableGetFriends({commit, state}) {
-            let url = routes.api.availableFriends;
+        async apiAvailableGetFriends({commit, state}, payload) {
+            let queryParams = {};
             if (null !== state.lastViewedUserId) {
-                url += `?lastViewedUserId=${state.lastViewedUserId}`
+                queryParams.lastViewedUserId = state.lastViewedUserId
             }
 
-            const {responseMessage} = await httpRequest.get(url);
+            if (`undefined` !== typeof payload) {
+                queryParams = {...queryParams, ...payload}
+            }
+
+            const {responseMessage} = await httpRequest.get(`${routes.api.availableFriends}?${new URLSearchParams(queryParams)}`);
 
             if (responseMessage.status) {
                 const {users} = responseMessage.data;
