@@ -3,6 +3,7 @@ package config
 import (
 	"github.com/joho/godotenv"
 	"log"
+	"strings"
 )
 
 type Config struct {
@@ -12,13 +13,13 @@ type Config struct {
 }
 
 type DBConfig struct {
-	Dialect  string
-	Host     string
-	Port     string
-	Username string
-	Password string
-	Name     string
-	Charset  string
+	Dialect      string
+	MasterUrl    string
+	ReplicasUrls []string
+	Username     string
+	Password     string
+	Database     string
+	Charset      string
 }
 
 type Server struct {
@@ -48,13 +49,13 @@ func (c *Config) initInner() *Config {
 	}
 
 	c.DB = DBConfig{
-		Dialect:  c.env["DB_DIALECT"],
-		Host:     c.env["DB_HOST"],
-		Port:     c.env["DB_PORT"],
-		Username: c.env["DB_USERNAME"],
-		Password: c.env["DB_PASSWORD"],
-		Name:     c.env["DB_NAME"],
-		Charset:  c.env["DB_CHARSET"],
+		Dialect:      c.env["DB_DIALECT"],
+		MasterUrl:    c.env["DB_MASTER_URL"],
+		ReplicasUrls: strings.Split(c.env["DB_REPLICA_URLS"], ","),
+		Username:     c.env["DB_USERNAME"],
+		Password:     c.env["DB_PASSWORD"],
+		Database:     c.env["DB_NAME"],
+		Charset:      c.env["DB_CHARSET"],
 	}
 
 	c.Server = Server{

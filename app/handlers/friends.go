@@ -56,17 +56,7 @@ func (h *Handler) ApiGetFriendsHandler() error {
 		return err
 	}
 
-	friends, err := models.UserRelationFindByUserId(h.db, userId)
-	if nil != err {
-		return err
-	}
-
-	friendsIds := make([]int, len(friends))
-	for i, friend := range friends {
-		friendsIds[i] = friend.Friend_user_id
-	}
-
-	users, err := models.UserFindByUserIds(h.db, friendsIds)
+	users, err := models.UserFindFriendsForUser(h.db, userId)
 	if nil != err {
 		return err
 	}

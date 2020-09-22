@@ -12,7 +12,7 @@ type QueryParse interface {
 type AvailableFriendsRequest struct {
 	LastViewedUserId int    `validate:"numeric"`
 	Name             string `validate:"required_with=Surname"`
-	Surname          string `validate:"required_with=Name"`
+	Surname          string `validate:"required_with=Database"`
 }
 
 func (a *AvailableFriendsRequest) Parse(r *http.Request) {

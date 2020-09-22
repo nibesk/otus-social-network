@@ -99,7 +99,7 @@ func UserFindById(conn *storage.DbConnection, userId int) (*User, error) {
 }
 
 func UserFindAllExceptUserId(conn *storage.DbConnection, userId int, searchParams requests.AvailableFriendsRequest) ([]*User, error) {
-	db := conn.GetDb()
+	db := conn.GetCDb()
 	queryParams := []interface{}{}
 	scrollSth := ""
 	if 0 != searchParams.LastViewedUserId {
@@ -165,6 +165,31 @@ func UserFindByUserIds(conn *storage.DbConnection, userIds []int) ([]*User, erro
 	db := conn.GetDb()
 
 	query, err := db.Query("SELECT * FROM user WHERE user_id in (? "+strings.Repeat(",?", len(args)-1)+")", args...)
+	if err != nil {
+		return nil, err
+	}
+
+	collection := []*User{}
+	for query.Next() {
+		user := &User{}
+		err := userQueryScan(query.Scan, user)
+		if err != nil {
+			return nil, err
+		}
+		collection = append(collection, user)
+	}
+
+	return collection, nil
+}
+
+func UserFindFriendsForUser(conn *storage.DbConnection, userId int) ([]*User, error) {
+	db := conn.GetCDb()
+
+	query, err := db.Query(
+		"SELECT u.* FROM user u "+
+			"JOIN user_relation ur ON u.user_id = ur.friend_user_id "+
+			"WHERE ur.user_id = ?", userId)
+
 	if err != nil {
 		return nil, err
 	}

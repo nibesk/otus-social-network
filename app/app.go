@@ -15,7 +15,7 @@ type App struct {
 }
 
 func Init(config *config.Config) *App {
-	db, err := storage.CreateDbConnection(config.DB)
+	db, err := storage.ConnectDb(config.DB)
 	if nil != err {
 		log.Fatal("can't connect to database")
 	}
