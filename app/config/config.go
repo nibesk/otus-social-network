@@ -48,10 +48,16 @@ func (c *Config) initInner() *Config {
 		log.Fatal("Error loading .env file")
 	}
 
+	replicasUrlsEnv := c.env["DB_REPLICA_URLS"]
+	var replicasUrlsList []string
+	if "" != replicasUrlsEnv {
+		replicasUrlsList = strings.Split(replicasUrlsEnv, ",")
+	}
+
 	c.DB = DBConfig{
 		Dialect:      c.env["DB_DIALECT"],
 		MasterUrl:    c.env["DB_MASTER_URL"],
-		ReplicasUrls: strings.Split(c.env["DB_REPLICA_URLS"], ","),
+		ReplicasUrls: replicasUrlsList,
 		Username:     c.env["DB_USERNAME"],
 		Password:     c.env["DB_PASSWORD"],
 		Database:     c.env["DB_NAME"],
