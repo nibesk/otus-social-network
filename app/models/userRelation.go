@@ -86,7 +86,7 @@ func UserRelationFindByIds(conn *storage.DbConnection, userId, friendUserId int)
 }
 
 func UserRelationFindByUserId(conn *storage.DbConnection, userId int) ([]*UserRelation, error) {
-	db := conn.GetDb()
+	db := conn.GetCDb()
 
 	query, err := db.Query("SELECT * FROM user_relation WHERE user_id = ?", userId)
 	if err != nil {

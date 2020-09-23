@@ -7,7 +7,7 @@ build-frontend:
 
 build-backend:
 	go install && \
- 	go build -o ./build
+	go build -o ./build
 
 backend-service-start:
 	sudo service gosocialotus start

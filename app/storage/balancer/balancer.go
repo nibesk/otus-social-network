@@ -6,16 +6,35 @@ import (
 	"context"
 	"database/sql"
 	"database/sql/driver"
+	"sync"
 	"sync/atomic"
 	"time"
 )
+
+// connection responsible for knowledge of availability of resource
+type connection struct {
+	sync.RWMutex
+	db              *sql.DB
+	availabilityTtl int64
+}
+
+func (c *connection) isAvailable() bool {
+	return c.availabilityTtl < time.Now().Unix()
+}
+
+func (c *connection) markUnavailable() {
+	c.Lock()
+	defer c.Unlock()
+
+	c.availabilityTtl = time.Now().Unix() + int64(time.Minute/time.Second)
+}
 
 // DB is a logical database with multiple underlying physical databases
 // forming a single master multiple slaves topology.
 // Reads and writes are automatically directed to the correct physical db.
 type DB struct {
-	pdbs  []*sql.DB // Physical databases
-	count uint64    // Monotonically incrementing counter on each query
+	cpdbs []*connection // Physical databases with availability ttl
+	count uint64        // Monotonically incrementing counter on each query
 }
 
 // Open concurrently opens each underlying physical db.
@@ -26,10 +45,14 @@ func Open(driverName, masterDSN string, replicasDSNs []string) (*DB, error) {
 	conns = append(conns, masterDSN)
 	conns = append(conns, replicasDSNs...)
 
-	db := &DB{pdbs: make([]*sql.DB, len(replicasDSNs))}
+	db := &DB{
+		cpdbs: make([]*connection, len(conns)),
+	}
 
-	err := scatter(len(db.pdbs), func(i int) (err error) {
-		db.pdbs[i], err = sql.Open(driverName, conns[i])
+	err := scatter(len(db.cpdbs), func(i int) (err error) {
+		conn, err := sql.Open(driverName, conns[i])
+		db.cpdbs[i] = new(connection)
+		db.cpdbs[i].db = conn
 
 		return err
 	})
@@ -43,8 +66,8 @@ func Open(driverName, masterDSN string, replicasDSNs []string) (*DB, error) {
 
 // Close closes all physical databases concurrently, releasing any open resources.
 func (db *DB) Close() error {
-	return scatter(len(db.pdbs), func(i int) error {
-		return db.pdbs[i].Close()
+	return scatter(len(db.cpdbs), func(i int) error {
+		return db.cpdbs[i].db.Close()
 	})
 }
 
@@ -84,26 +107,27 @@ func (db *DB) ExecContext(ctx context.Context, query string, args ...interface{}
 // Ping verifies if a connection to each physical database is still alive,
 // establishing a connection if necessary.
 func (db *DB) Ping() error {
-	return scatter(len(db.pdbs), func(i int) error {
-		return db.pdbs[i].Ping()
+	return scatter(len(db.cpdbs), func(i int) error {
+		return db.cpdbs[i].db.Ping()
 	})
 }
 
 // PingContext verifies if a connection to each physical database is still
 // alive, establishing a connection if necessary.
 func (db *DB) PingContext(ctx context.Context) error {
-	return scatter(len(db.pdbs), func(i int) error {
-		return db.pdbs[i].PingContext(ctx)
+	return scatter(len(db.cpdbs), func(i int) error {
+		return db.cpdbs[i].db.PingContext(ctx)
 	})
 }
 
+// TODO fix possible replica unavailability
 // Prepare creates a prepared statement for later queries or executions
 // on each physical database, concurrently.
 func (db *DB) Prepare(query string) (Stmt, error) {
-	stmts := make([]*sql.Stmt, len(db.pdbs))
+	stmts := make([]*sql.Stmt, len(db.cpdbs))
 
-	err := scatter(len(db.pdbs), func(i int) (err error) {
-		stmts[i], err = db.pdbs[i].Prepare(query)
+	err := scatter(len(db.cpdbs), func(i int) (err error) {
+		stmts[i], err = db.cpdbs[i].db.Prepare(query)
 		return err
 	})
 
@@ -114,16 +138,18 @@ func (db *DB) Prepare(query string) (Stmt, error) {
 	return &stmt{db: db, stmts: stmts}, nil
 }
 
+// TODO fix possible replica unavailability
+
 // PrepareContext creates a prepared statement for later queries or executions
 // on each physical database, concurrently.
 //
 // The provided context is used for the preparation of the statement, not for
 // the execution of the statement.
 func (db *DB) PrepareContext(ctx context.Context, query string) (Stmt, error) {
-	stmts := make([]*sql.Stmt, len(db.pdbs))
+	stmts := make([]*sql.Stmt, len(db.cpdbs))
 
-	err := scatter(len(db.pdbs), func(i int) (err error) {
-		stmts[i], err = db.pdbs[i].PrepareContext(ctx, query)
+	err := scatter(len(db.cpdbs), func(i int) (err error) {
+		stmts[i], err = db.cpdbs[i].db.PrepareContext(ctx, query)
 		return err
 	})
 
@@ -135,14 +161,14 @@ func (db *DB) PrepareContext(ctx context.Context, query string) (Stmt, error) {
 
 // Query executes a query that returns rows, typically a SELECT.
 // The args are for any placeholder parameters in the query.
-// Query uses a slave as the physical db.
+// Query uses a slaveIndex as the physical db.
 func (db *DB) Query(query string, args ...interface{}) (*sql.Rows, error) {
 	return db.Slave().Query(query, args...)
 }
 
 // QueryContext executes a query that returns rows, typically a SELECT.
 // The args are for any placeholder parameters in the query.
-// QueryContext uses a slave as the physical db.
+// QueryContext uses a slaveIndex as the physical db.
 func (db *DB) QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error) {
 	return db.Slave().QueryContext(ctx, query, args...)
 }
@@ -150,7 +176,7 @@ func (db *DB) QueryContext(ctx context.Context, query string, args ...interface{
 // QueryRow executes a query that is expected to return at most one row.
 // QueryRow always return a non-nil value.
 // Errors are deferred until Row's Scan method is called.
-// QueryRow uses a slave as the physical db.
+// QueryRow uses a slaveIndex as the physical db.
 func (db *DB) QueryRow(query string, args ...interface{}) *sql.Row {
 	return db.Slave().QueryRow(query, args...)
 }
@@ -158,7 +184,7 @@ func (db *DB) QueryRow(query string, args ...interface{}) *sql.Row {
 // QueryRowContext executes a query that is expected to return at most one row.
 // QueryRowContext always return a non-nil value.
 // Errors are deferred until Row's Scan method is called.
-// QueryRowContext uses a slave as the physical db.
+// QueryRowContext uses a slaveIndex as the physical db.
 func (db *DB) QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row {
 	return db.Slave().QueryRowContext(ctx, query, args...)
 }
@@ -169,8 +195,8 @@ func (db *DB) QueryRowContext(ctx context.Context, query string, args ...interfa
 // new MaxIdleConns will be reduced to match the MaxOpenConns limit
 // If n <= 0, no idle connections are retained.
 func (db *DB) SetMaxIdleConns(n int) {
-	for i := range db.pdbs {
-		db.pdbs[i].SetMaxIdleConns(n)
+	for i := range db.cpdbs {
+		db.cpdbs[i].db.SetMaxIdleConns(n)
 	}
 }
 
@@ -181,8 +207,8 @@ func (db *DB) SetMaxIdleConns(n int) {
 // the new MaxOpenConns limit. If n <= 0, then there is no limit on the number
 // of open connections. The default is 0 (unlimited).
 func (db *DB) SetMaxOpenConns(n int) {
-	for i := range db.pdbs {
-		db.pdbs[i].SetMaxOpenConns(n)
+	for i := range db.cpdbs {
+		db.cpdbs[i].db.SetMaxOpenConns(n)
 	}
 }
 
@@ -190,22 +216,45 @@ func (db *DB) SetMaxOpenConns(n int) {
 // Expired connections may be closed lazily before reuse.
 // If d <= 0, connections are reused forever.
 func (db *DB) SetConnMaxLifetime(d time.Duration) {
-	for i := range db.pdbs {
-		db.pdbs[i].SetConnMaxLifetime(d)
+	for i := range db.cpdbs {
+		db.cpdbs[i].db.SetConnMaxLifetime(d)
 	}
-}
-
-// Slave returns one of the physical databases which is a slave
-func (db *DB) Slave() *sql.DB {
-	return db.pdbs[db.slave(len(db.pdbs))]
 }
 
 // Master returns the master physical database
 func (db *DB) Master() *sql.DB {
-	return db.pdbs[0]
+	return db.masterConn().db
 }
 
-func (db *DB) slave(n int) int {
+func (db *DB) masterConn() *connection {
+	return db.cpdbs[0]
+}
+
+// Slave returns one of the physical databases which is a slaveIndex
+func (db *DB) Slave() *sql.DB {
+	return db.slaveConn().db
+}
+
+// TODO подумать над тем как можно оптимизировать выявление отвалившихся реплик что бы на каждый запрос не делать ping (?)
+func (db *DB) slaveConn() *connection {
+	tryCnt := len(db.cpdbs) - 1
+	for tryCnt > 0 {
+		conn := db.cpdbs[db.slaveIndex(len(db.cpdbs))]
+		if conn.isAvailable() {
+			if err := conn.db.Ping(); nil != err {
+				conn.markUnavailable()
+				continue
+			}
+			return conn
+		}
+
+		tryCnt -= 1
+	}
+
+	return db.masterConn()
+}
+
+func (db *DB) slaveIndex(n int) int {
 	if n <= 1 {
 		return 0
 	}
