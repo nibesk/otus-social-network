@@ -1,13 +1,15 @@
 env:
-	cp example.env .env
+	cp backend\example.env backend\.env
 
 build-frontend:
 	npm install --prefix ./frontend && \
  	npm run build --prefix ./frontend
 
 build-backend:
+	cd backend && \
 	go install && \
-	go build -o ./build
+	go build -o ./build && \
+	cd ..
 
 backend-service-start:
 	sudo service gosocialotus start
