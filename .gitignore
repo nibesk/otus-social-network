@@ -2,4 +2,9 @@ vendor/*
 .idea
 .idea/*
 
-test.go
+backend/test.go
+backend/logs/*
+
+frontend/package-lock.json
+
+nginx/logs/*
