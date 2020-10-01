@@ -8,6 +8,8 @@ services:
       - ./backend:/backend
     ports:
       - 3000:3000
+    depends_on:
+      - mysql-master
 
   nginx:
     container_name: otus-social_nginx
