@@ -14,7 +14,7 @@ export default {
 
     actions: {
         async apiGetFriends({commit}) {
-            const {responseMessage} = await httpRequest.get(routes.api.friends);
+            const {responseMessage} = await httpRequest.get(routes.service_users.friends);
 
             if (responseMessage.status) {
                 const {users} = responseMessage.data;
@@ -34,7 +34,7 @@ export default {
                 queryParams = {...queryParams, ...payload}
             }
 
-            const {responseMessage} = await httpRequest.get(`${routes.api.availableFriends}?${new URLSearchParams(queryParams)}`);
+            const {responseMessage} = await httpRequest.get(`${routes.service_users.availableFriends}?${new URLSearchParams(queryParams)}`);
 
             if (responseMessage.status) {
                 const {users} = responseMessage.data;
@@ -46,7 +46,7 @@ export default {
         },
 
         async apiDeleteFriend({commit}, payload) {
-            const {responseMessage} = await httpRequest.post(routes.api.removeFriends, new RequestMessage(payload));
+            const {responseMessage} = await httpRequest.post(routes.service_users.removeFriends, new RequestMessage(payload));
 
             if (responseMessage.status) {
                 const {user} = responseMessage.data;
@@ -58,7 +58,7 @@ export default {
         },
 
         async apiAddFriend({commit}, payload) {
-            const {responseMessage} = await httpRequest.post(routes.api.friends, new RequestMessage(payload));
+            const {responseMessage} = await httpRequest.post(routes.service_users.friends, new RequestMessage(payload));
 
             if (responseMessage.status) {
                 const {user} = responseMessage.data;

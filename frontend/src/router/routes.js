@@ -5,14 +5,14 @@ export const routes = {
   flow: `/flow`,
   friends: `/friends`,
 
-  api: {
-    friends: `/api/friends`,
-    removeFriends: `/api/friends/remove`,
-    availableFriends: `/api/availableFriends`,
+  service_users: {
+    friends: `/users/friends`,
+    removeFriends: `/users/friends/remove`,
+    availableFriends: `/users/availableFriends`,
 
-    login: "/api/login",
-    getUser: "/api/getUser",
-    register: "/api/register",
-    logout: "/api/logout"
+    login: "/users/login",
+    getUser: "/users/getUser",
+    register: "/users/register",
+    logout: "/users/logout"
   }
 };

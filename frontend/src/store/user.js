@@ -10,7 +10,7 @@ export default {
 
     actions: {
         async checkAuth({commit}) {
-            const {responseMessage} = await httpRequest.get(routes.api.getUser);
+            const {responseMessage} = await httpRequest.get(routes.service_users.getUser);
 
             if (responseMessage.status) {
                 const {user} = responseMessage.data;
@@ -21,7 +21,7 @@ export default {
         },
 
         async login({commit}, payload) {
-            const {responseMessage} = await httpRequest.post(routes.api.login, new RequestMessage(payload));
+            const {responseMessage} = await httpRequest.post(routes.service_users.login, new RequestMessage(payload));
 
             if (responseMessage.status) {
                 const {user} = responseMessage.data;
@@ -32,7 +32,7 @@ export default {
         },
 
         async register({commit}, payload) {
-            const {responseMessage} = await httpRequest.post(routes.api.register, new RequestMessage(payload));
+            const {responseMessage} = await httpRequest.post(routes.service_users.register, new RequestMessage(payload));
 
             if (responseMessage.status) {
                 const {user} = responseMessage.data;
@@ -43,7 +43,7 @@ export default {
         },
 
         async logout({commit}) {
-            const {responseMessage} = await httpRequest.post(routes.api.logout);
+            const {responseMessage} = await httpRequest.post(routes.service_users.logout);
 
             if (responseMessage.status) {
                 commit('CLEAR_USER');

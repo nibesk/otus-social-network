@@ -2,13 +2,13 @@ package globals
 
 const ViewIndexRoute = "/"
 
-const ApiLoginRoute = "/api/login"
-const ApiGetUserRoute = "/api/getUser"
-const ApiRegisterRoute = "/api/register"
-const ApiLogoutRoute = "/api/logout"
-const ApiFriendsRoute = "/api/friends"
-const ApiRemoveFriendsRoute = "/api/friends/remove"
-const ApiAvailableFriendRoute = "/api/availableFriends"
+const ApiLoginRoute = "/users/login"
+const ApiGetUserRoute = "/users/getUser"
+const ApiRegisterRoute = "/users/register"
+const ApiLogoutRoute = "/users/logout"
+const ApiFriendsRoute = "/users/friends"
+const ApiRemoveFriendsRoute = "/users/friends/remove"
+const ApiAvailableFriendRoute = "/users/availableFriends"
 
 //List of endpoints that require auth
 var NonAuthorizedOnlyRoutes = map[string]bool{
