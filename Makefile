@@ -2,7 +2,7 @@ env:
 	cp backend\example.env backend\.env
 
 start:
-	docker-compose up -d mysql-master backend npm
+	docker-compose up -d osn-users_mysql-master osn-users_backend osn_npm
 
 preview:
 	docker-compose up
