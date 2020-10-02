@@ -2,11 +2,11 @@ package handlers
 
 import (
 	"database/sql"
-	"github.com/badThug/otus-social-network/app/handlers/requests"
-	"github.com/badThug/otus-social-network/app/models"
-	"github.com/badThug/otus-social-network/app/storage"
-	"github.com/badThug/otus-social-network/app/utils"
 	"github.com/pkg/errors"
+	"service-users/app/handlers/requests"
+	"service-users/app/models"
+	"service-users/app/storage"
+	"service-users/app/utils"
 )
 
 func (h *Handler) ApiLoginHandler() error {

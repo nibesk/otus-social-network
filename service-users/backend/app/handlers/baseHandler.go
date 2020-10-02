@@ -2,12 +2,12 @@ package handlers
 
 import (
 	"fmt"
-	"github.com/badThug/otus-social-network/app/customErrors"
-	"github.com/badThug/otus-social-network/app/storage"
-	"github.com/badThug/otus-social-network/app/utils"
 	"github.com/go-playground/validator"
 	"github.com/gorilla/sessions"
 	"net/http"
+	"service-users/app/customErrors"
+	"service-users/app/storage"
+	"service-users/app/utils"
 )
 
 type Handler struct {

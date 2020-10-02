@@ -3,12 +3,12 @@ package models
 import (
 	"fmt"
 	"github.com/VividCortex/mysqlerr"
-	"github.com/badThug/otus-social-network/app/customErrors"
-	"github.com/badThug/otus-social-network/app/globals"
-	"github.com/badThug/otus-social-network/app/handlers/requests"
-	"github.com/badThug/otus-social-network/app/storage"
 	"github.com/go-sql-driver/mysql"
 	"github.com/pkg/errors"
+	"service-users/app/customErrors"
+	"service-users/app/globals"
+	"service-users/app/handlers/requests"
+	"service-users/app/storage"
 	"strings"
 )
 

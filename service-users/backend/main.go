@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/badThug/otus-social-network/app"
-	"github.com/badThug/otus-social-network/app/config"
 	"log"
+	"service-users/app"
+	"service-users/app/config"
 )
 
 func main() {

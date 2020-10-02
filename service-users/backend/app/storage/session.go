@@ -1,9 +1,9 @@
 package storage
 
 import (
-	"github.com/badThug/otus-social-network/app/config"
 	"github.com/gorilla/sessions"
 	"net/http"
+	"service-users/app/config"
 )
 
 const SessionUserIdKey = "user_id"

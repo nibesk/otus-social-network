@@ -3,9 +3,9 @@ package storage
 import (
 	"database/sql"
 	"fmt"
-	"github.com/badThug/otus-social-network/app/config"
-	"github.com/badThug/otus-social-network/app/storage/balancer"
 	_ "github.com/go-sql-driver/mysql"
+	"service-users/app/config"
+	"service-users/app/storage/balancer"
 	"time"
 )
 

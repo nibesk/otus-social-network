@@ -1,45 +1,44 @@
 version: '3'
 
 services:
-  backend:
-    container_name: otus-social_backend
-    build: backend
+  osn-users_backend:
+    container_name: osn-users_backend
+    build: service-users/backend
     volumes:
-      - ./backend:/backend
+      - ./service-users/backend:/backend
     ports:
       - 3000:3000
     depends_on:
-      - mysql-master
+      - osn-users_mysql-master
+  osn-users_mysql-master:
+    image: 'mysql:5.7'
+    hostname: 'osn-users_mysql-master'
+    container_name: 'osn-users_mysql-master'
+    ports:
+      - 3307:3306
+    volumes:
+      - ./service-users/database/master/conf.d:/etc/mysql/mysql.conf.d
+      - ./service-users/database/master/data:/var/lib/mysql
+      - ./service-users/database/master/log:/var/log/mysql
+      - ./service-users/database/master/backup:/backup
+    environment:
+      - MYSQL_ROOT_PASSWORD=mysql
+      - MYSQL_DATABASE=dbase
 
-  nginx:
-    container_name: otus-social_nginx
+  osn_nginx:
+    container_name: osn_nginx
     image: nginx:latest
     volumes:
       - ./nginx/hosts:/etc/nginx/conf.d
       - ./frontend:/var/www/site
       - ./nginx/logs:/var/log/nginx
     links:
-      - backend
+      - osn-users_backend
     ports:
       - 8080:80
 
-  npm:
-    container_name: otus-social_npm
+  osn_npm:
+    container_name: osn_npm
     build: frontend
     volumes:
       - ./frontend:/frontend
-
-  mysql-master:
-    image: 'mysql:5.7'
-    hostname: 'otus-social_mysql-master'
-    container_name: 'otus-social_mysql-master'
-    ports:
-      - 3307:3306
-    volumes:
-      - ./database/master/conf.d:/etc/mysql/mysql.conf.d
-      - ./database/master/data:/var/lib/mysql
-      - ./database/master/log:/var/log/mysql
-      - ./database/master/backup:/backup
-    environment:
-      - MYSQL_ROOT_PASSWORD=mysql
-      - MYSQL_DATABASE=dbase

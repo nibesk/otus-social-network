@@ -3,10 +3,10 @@ package web
 import (
 	"context"
 	"fmt"
-	"github.com/badThug/otus-social-network/app/globals"
-	"github.com/badThug/otus-social-network/app/storage"
-	"github.com/badThug/otus-social-network/app/utils"
 	"net/http"
+	"service-users/app/globals"
+	"service-users/app/storage"
+	"service-users/app/utils"
 )
 
 var SessionAuthentication = func(next http.Handler) http.Handler {

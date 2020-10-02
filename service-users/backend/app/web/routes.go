@@ -1,8 +1,8 @@
 package web
 
 import (
-	"github.com/badThug/otus-social-network/app/globals"
-	"github.com/badThug/otus-social-network/app/handlers"
+	"service-users/app/globals"
+	"service-users/app/handlers"
 )
 
 func initRoutes(d Dispatcher) {

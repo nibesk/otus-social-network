@@ -1,4 +1,4 @@
-module github.com/badThug/otus-social-network
+module service-users
 
 go 1.14
 

@@ -1,15 +1,15 @@
 package web
 
 import (
-	"github.com/badThug/otus-social-network/app/config"
-	"github.com/badThug/otus-social-network/app/customErrors"
-	"github.com/badThug/otus-social-network/app/handlers"
-	"github.com/badThug/otus-social-network/app/storage"
-	"github.com/badThug/otus-social-network/app/utils"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"log"
 	"net/http"
+	"service-users/app/config"
+	"service-users/app/customErrors"
+	"service-users/app/handlers"
+	"service-users/app/storage"
+	"service-users/app/utils"
 )
 
 type Dispatcher struct {

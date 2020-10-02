@@ -1,11 +1,11 @@
 package app
 
 import (
-	"github.com/badThug/otus-social-network/app/config"
-	"github.com/badThug/otus-social-network/app/storage"
-	"github.com/badThug/otus-social-network/app/web"
 	"log"
 	"net/http"
+	"service-users/app/config"
+	"service-users/app/storage"
+	"service-users/app/web"
 )
 
 type App struct {

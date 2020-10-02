@@ -3,9 +3,9 @@ package handlers
 import (
 	"database/sql"
 	"fmt"
-	"github.com/badThug/otus-social-network/app/handlers/requests"
-	"github.com/badThug/otus-social-network/app/models"
 	"github.com/pkg/errors"
+	"service-users/app/handlers/requests"
+	"service-users/app/models"
 )
 
 func (h *Handler) ApiGetAvailableFriendsHandler() error {
