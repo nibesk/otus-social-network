@@ -6,27 +6,18 @@ import (
 	"log"
 	"net/http"
 	"runtime/debug"
-	"service-users/app/config"
-	"service-users/app/customErrors"
-	"service-users/app/handlers"
-	"service-users/app/storage"
-	"service-users/app/utils"
+	"service-chat/app/customErrors"
+	"service-chat/app/handlers"
+	"service-chat/app/utils"
 )
 
 type Dispatcher struct {
 	Router *mux.Router
-	db     *storage.DbConnection
 }
 
-func InitDispatcher(db *storage.DbConnection, config *config.Config) Dispatcher {
+func InitDispatcher() Dispatcher {
 	router := mux.NewRouter()
-
-	dispatcher := Dispatcher{
-		Router: router,
-		db:     db,
-	}
-
-	handlers.CreateValidator()
+	dispatcher := Dispatcher{Router: router}
 	initRoutes(dispatcher)
 
 	return dispatcher
@@ -52,24 +43,20 @@ func (d *Dispatcher) Delete(path string, f func(w http.ResponseWriter, r *http.R
 	d.Router.HandleFunc(path, f).Methods("DELETE")
 }
 
-// Run the app on it's router
-func (d *Dispatcher) Run(host string) {
-	log.Fatal(http.ListenAndServe(host, d.Router))
-}
-
 func (d *Dispatcher) handleRequest(handlerMethod func(h *handlers.Handler) error) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		h := handlers.InitHandler(d.db, w, r)
+		h := handlers.InitHandler(w, r)
 		defer func() {
 			if r := recover(); r != nil {
-				log.Printf("Panic recovered in f: %w; Stack trace %s", r, string(debug.Stack()))
+				log.Printf("[PANIC] %w; Stack trace %s", r, string(debug.Stack()))
 				h.ResponseWithError("Internal server error", http.StatusInternalServerError)
 			}
 		}()
 
 		log.Printf("%s %s", r.Method, r.URL)
 
-		if err := handlerMethod(h); nil != err {
+		err := handlerMethod(h)
+		if nil != err {
 			switch causedErr := errors.Cause(err).(type) {
 			case *utils.MalformedRequest:
 				h.ResponseWithError(causedErr.Msg, causedErr.Status)
@@ -81,7 +68,7 @@ func (d *Dispatcher) handleRequest(handlerMethod func(h *handlers.Handler) error
 				h.ResponseWithError("Internal server error", http.StatusInternalServerError)
 			}
 
-			log.Printf("Error occured: %+v\n", err)
+			log.Printf("[ERROR] %+v\n", err)
 		}
 	}
 }
