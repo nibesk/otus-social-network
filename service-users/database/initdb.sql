@@ -16,6 +16,9 @@ CREATE TABLE `user` (
   UNIQUE KEY `user_email_ukey` (`email`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=utf8mb4;
 
+ALTER TABLE `user` ADD token varchar(255) NULL;
+ALTER TABLE `user` CHANGE token token varchar(255) NULL AFTER password;
+
 -- otus.user_relation definition
 
 CREATE TABLE `user_relation` (

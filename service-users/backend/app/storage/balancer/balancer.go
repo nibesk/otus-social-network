@@ -38,6 +38,13 @@ type DB struct {
 	count uint64        // Monotonically incrementing counter on each query
 }
 
+func CreateFromDb(db *sql.DB) *DB {
+	conns := make([]*connection, 1)
+	conns[0] = &connection{db: db}
+
+	return &DB{cpdbs: conns}
+}
+
 // Open concurrently opens each underlying physical db.
 // dataSourceNames must be an list of DSNs with the first
 // one being used as the master and the rest as slaves.

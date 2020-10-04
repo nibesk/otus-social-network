@@ -9,10 +9,7 @@ import (
 )
 
 func (h *Handler) ApiGetAvailableFriendsHandler() error {
-	userId, err := h.getSessionUserId()
-	if nil != err {
-		return errors.WithStack(err)
-	}
+	userId, _ := h.getAuthUserId()
 
 	request := requests.AvailableFriendsRequest{}
 	request.Parse(h.request)
@@ -20,12 +17,12 @@ func (h *Handler) ApiGetAvailableFriendsHandler() error {
 		return h.error(violations)
 	}
 
-	users, err := models.UserFindAllExceptUserId(h.db, userId, request)
+	users, err := models.UserFindAllExceptUserId(h.db.GetCDb(), userId, request)
 	if nil != err {
 		return err
 	}
 
-	userRelations, err := models.UserRelationFindByUserId(h.db, userId)
+	userRelations, err := models.UserRelationFindByUserId(h.db.GetCDb(), userId)
 	if nil != err {
 		return err
 	}
@@ -51,12 +48,8 @@ func (h *Handler) ApiGetAvailableFriendsHandler() error {
 }
 
 func (h *Handler) ApiGetFriendsHandler() error {
-	userId, err := h.getSessionUserId()
-	if nil != err {
-		return err
-	}
-
-	users, err := models.UserFindFriendsForUser(h.db, userId)
+	userId, _ := h.getAuthUserId()
+	users, err := models.UserFindFriendsForUser(h.db.GetCDb(), userId)
 	if nil != err {
 		return err
 	}
@@ -81,16 +74,12 @@ func (h *Handler) ApiAddFriendHandler() error {
 		return h.error(violations)
 	}
 
-	userId, err := h.getSessionUserId()
-	if nil != err {
-		return err
-	}
-
+	userId, _ := h.getAuthUserId()
 	if userId == request.Friend_user_id {
 		return h.error("You can't add yourself as a friend")
 	}
 
-	user, err := models.UserFindById(h.db, request.Friend_user_id)
+	user, err := models.UserFindById(h.db.GetDb(), request.Friend_user_id)
 	switch true {
 	case errors.Is(err, sql.ErrNoRows):
 		return h.error(fmt.Sprintf("User with id %d is not found", request.Friend_user_id))
@@ -98,7 +87,7 @@ func (h *Handler) ApiAddFriendHandler() error {
 		return err
 	}
 
-	_, err = models.UserRelationCreate(h.db, userId, request.Friend_user_id)
+	_, err = models.UserRelationCreate(h.db.GetDb(), userId, request.Friend_user_id)
 	if nil != err {
 		return err
 	}
@@ -118,12 +107,8 @@ func (h *Handler) ApiDeleteFriendHandler() error {
 		return h.error(violations)
 	}
 
-	userId, err := h.getSessionUserId()
-	if nil != err {
-		return errors.WithStack(err)
-	}
-
-	user, err := models.UserFindById(h.db, request.Friend_user_id)
+	userId, _ := h.getAuthUserId()
+	user, err := models.UserFindById(h.db.GetDb(), request.Friend_user_id)
 	switch true {
 	case errors.Is(err, sql.ErrNoRows):
 		return h.error(fmt.Sprintf("User with id %d is not found", request.Friend_user_id))
@@ -131,7 +116,7 @@ func (h *Handler) ApiDeleteFriendHandler() error {
 		return err
 	}
 
-	err = models.UserRelationDelete(h.db, userId, request.Friend_user_id)
+	err = models.UserRelationDelete(h.db.GetDb(), userId, request.Friend_user_id)
 	switch true {
 	case errors.Is(err, sql.ErrNoRows):
 		return h.error(fmt.Sprintf("User doesn't have relation with user id %d", request.Friend_user_id))

@@ -17,8 +17,7 @@ type UserRelation struct {
 	Updated_at     string `json:"-"`
 }
 
-func UserRelationCreate(conn *storage.DbConnection, userId, friendUserId int) (*UserRelation, error) {
-	db := conn.GetDb()
+func UserRelationCreate(db storage.Executable, userId, friendUserId int) (*UserRelation, error) {
 	insert, err := db.Prepare("INSERT INTO `user_relation` (user_id, friend_user_id) VALUES(?, ?)")
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -47,8 +46,7 @@ func UserRelationCreate(conn *storage.DbConnection, userId, friendUserId int) (*
 	return userRelation, nil
 }
 
-func UserRelationDelete(conn *storage.DbConnection, userId, friendUserId int) error {
-	db := conn.GetDb()
+func UserRelationDelete(db storage.Executable, userId, friendUserId int) error {
 	insert, err := db.Prepare("DELETE FROM user_relation WHERE user_id = ? AND friend_user_id = ?")
 	if err != nil {
 		return errors.WithStack(err)
@@ -71,23 +69,7 @@ func UserRelationDelete(conn *storage.DbConnection, userId, friendUserId int) er
 	return nil
 }
 
-func UserRelationFindByIds(conn *storage.DbConnection, userId, friendUserId int) (*UserRelation, error) {
-	db := conn.GetDb()
-
-	query := db.QueryRow("SELECT * FROM user_relation WHERE user_id = ? and friend_user_id = ?", userId, friendUserId)
-
-	userRelation := &UserRelation{}
-	err := userRelationQueryScan(query.Scan, userRelation)
-	if err != nil {
-		return nil, err
-	}
-
-	return userRelation, nil
-}
-
-func UserRelationFindByUserId(conn *storage.DbConnection, userId int) ([]*UserRelation, error) {
-	db := conn.GetCDb()
-
+func UserRelationFindByUserId(db storage.Queryable, userId int) ([]*UserRelation, error) {
 	query, err := db.Query("SELECT * FROM user_relation WHERE user_id = ?", userId)
 	if err != nil {
 		return nil, err

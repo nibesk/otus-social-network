@@ -1,6 +1,10 @@
 import Vue from 'vue'
 import axios from 'axios';
 import string from "less/lib/less/functions/string";
+import store from '@/store'
+import _ from 'lodash'
+
+const StatusForbidden = 403;
 
 class ResponseMessage {
     status;
@@ -24,6 +28,10 @@ export class RequestMessage {
     }
 }
 
+const METHOD_POST   = 'POST';
+const METHOD_GET    = 'GET';
+const METHOD_DELETE = 'DELETE';
+
 class HttpRequest {
 
     constructor() {
@@ -31,36 +39,44 @@ class HttpRequest {
     }
 
     async get(path) {
-        return this.execute(this.axios.get, path)
+        return this.execute(METHOD_GET, path)
     }
 
     async post(path, message) {
-        return this.execute(this.axios.post, path, message, {
-            headers: {
-                "Content-Type": "application/json"
-            }
-        })
+        return this.execute(METHOD_POST, path, message)
     }
 
     async delete(path, message) {
-        return this.execute(this.axios.delete, path, message)
+        return this.execute(METHOD_DELETE, path, message)
     }
 
-    async execute(requestFunction, path, requestMessage, headers) {
-        console.log(`start execute request`, {requestFunction, path, requestMessage, headers});
+    async execute(method, path, requestMessage, headers) {
+        console.log(`start execute request`, {requestFunction: method, path, requestMessage, headers});
+
+        const defaultHeaders = {headers: {"Content-Type": "application/json"}};
+        if (null !== store.getters['user/getToken']) {
+            defaultHeaders.headers["Authorization"] = `Bearer ${store.getters['user/getToken']}`
+        }
 
         let response = null;
         const responseMessage = new ResponseMessage();
 
         try {
-            response = await requestFunction(
-                path,
-                typeof requestMessage === 'undefined' ? null : requestMessage.payload,
-                headers,
-            ).catch((error) => {
-                throw (error);
-            });
+            switch (method) {
+                case METHOD_GET:
+                    response = await this.axios.get(path, _.merge(defaultHeaders, headers));
+                    break;
 
+                case METHOD_POST:
+                    response = await this.axios.post(path, requestMessage.payload, _.merge(defaultHeaders, headers));
+                    break;
+
+                case METHOD_DELETE:
+                    headers = _.merge(defaultHeaders, headers);
+                    headers.data = requestMessage.payload;
+                    response = await this.axios.delete(path, headers);
+                    break;
+            }
         } catch (e) {
             response = e.response;
 

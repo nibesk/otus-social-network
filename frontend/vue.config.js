@@ -6,7 +6,7 @@ module.exports = {
     configureWebpack: {
         devServer: {
             proxy: {
-                '/api': {
+                '/users': {
                     target: process.env.DEV_BACKEND_URL,
                     changeOrigin: true
                 },

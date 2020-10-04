@@ -2,44 +2,64 @@ package web
 
 import (
 	"context"
-	"fmt"
+	"github.com/dgrijalva/jwt-go"
+	"github.com/pkg/errors"
+	"log"
 	"net/http"
+	"service-users/app/config"
 	"service-users/app/globals"
-	"service-users/app/storage"
 	"service-users/app/utils"
+	"strings"
 )
 
 var SessionAuthentication = func(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// current request path
-		requestPath := r.URL.Path
+		r, err := validateJwt(w, r)
 
-		// check if request does not need authentication, serve the request if it doesn't need it
-		if globals.NonAuthorizedOnlyRoutes[requestPath] {
+		if globals.NonAuthorizedOnlyRoutes[r.URL.Path] {
 			next.ServeHTTP(w, r)
 			return
 		}
 
-		session := sessionStorage.GetSession(r)
-
-		// Check if user is authenticated
-		userId, ok := session.Values[storage.SessionUserIdKey].(int)
-		if !ok {
-			if utils.IsJsonRequest(r) {
-				utils.SendResponseJsonWithStatusCode(w, utils.ResponseMessage(false, "Unauthorized"), http.StatusUnauthorized)
-			} else {
-				http.Error(w, "Forbidden", http.StatusForbidden)
-			}
-
+		if err != nil {
+			utils.SendResponseJsonWithStatusCode(w, utils.ResponseMessage(false, err.Error()), http.StatusForbidden)
 			return
 		}
 
-		fmt.Sprintf("User %", userId) //Useful for monitoring
-
-		// add userId to current request context
-		ctx := context.WithValue(r.Context(), "userId", userId)
-		r = r.WithContext(ctx)
-
 		next.ServeHTTP(w, r)
 	})
+}
+
+func validateJwt(w http.ResponseWriter, r *http.Request) (*http.Request, error) {
+	tokenHeader := r.Header.Get("Authorization")
+	if tokenHeader == "" {
+		return r, errors.New("Missing auth token")
+	}
+
+	// because inside should be "Bearer JWT"
+	splitted := strings.Split(tokenHeader, " ")
+	if len(splitted) != 2 {
+		return r, errors.New("Invalid/Malformed auth token")
+	}
+
+	tk := &utils.Token{}
+	token, err := jwt.ParseWithClaims(splitted[1], tk, func(token *jwt.Token) (interface{}, error) {
+		return []byte(config.Env.Server.SessionKey), nil
+	})
+
+	if err != nil {
+		return r, errors.New("Malformed authentication token")
+	}
+
+	if !token.Valid {
+		return r, errors.New("Token is not valid")
+	}
+
+	log.Printf("User is logged in %", tk.UserId) //Useful for monitoring
+
+	// add userId to current request context
+	ctx := context.WithValue(r.Context(), globals.AuthUserIdKey, tk.UserId)
+	r = r.WithContext(ctx)
+
+	return r, nil
 }

@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
@@ -14,7 +15,23 @@ type DbConnection struct {
 	cdb      *balancer.DB
 }
 
-func ConnectDb(dbConfig config.DBConfig) (*DbConnection, error) {
+type Queryable interface {
+	QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error)
+	Query(query string, args ...interface{}) (*sql.Rows, error)
+	QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row
+	QueryRow(query string, args ...interface{}) *sql.Row
+}
+
+type Executable interface {
+	PrepareContext(ctx context.Context, query string) (*sql.Stmt, error)
+	Prepare(query string) (*sql.Stmt, error)
+
+	ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
+	Exec(query string, args ...interface{}) (sql.Result, error)
+}
+
+func ConnectDb() (*DbConnection, error) {
+	dbConfig := config.Env.DB
 	dsnFormat := "%s:%s@tcp(%s)/%s?charset=%s&parseTime=True"
 	masterDSN := fmt.Sprintf(dsnFormat, dbConfig.Username, dbConfig.Password, dbConfig.MasterUrl, dbConfig.Database, dbConfig.Charset)
 

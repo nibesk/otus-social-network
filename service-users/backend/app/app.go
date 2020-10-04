@@ -9,21 +9,21 @@ import (
 )
 
 type App struct {
-	config     *config.Config
 	db         *storage.DbConnection
 	dispatcher web.Dispatcher
 }
 
-func Init(config *config.Config) *App {
-	db, err := storage.ConnectDb(config.DB)
+func Init() *App {
+	config.InitConfig()
+
+	db, err := storage.ConnectDb()
 	if nil != err {
 		log.Fatalf("can't connect to database: %+v", err)
 	}
-	dispatcher := web.InitDispatcher(db, config)
+	dispatcher := web.InitDispatcher(db, config.Env)
 
 	app := &App{
 		db:         db,
-		config:     config,
 		dispatcher: dispatcher,
 	}
 
@@ -31,5 +31,5 @@ func Init(config *config.Config) *App {
 }
 
 func (a *App) Run() {
-	log.Fatal(http.ListenAndServe(":3000", a.dispatcher.Router))
+	log.Fatal(http.ListenAndServe(":"+config.Env.Server.Port, a.dispatcher.Router))
 }

@@ -3,16 +3,14 @@ package handlers
 import (
 	"fmt"
 	"github.com/go-playground/validator"
-	"github.com/gorilla/sessions"
 	"net/http"
-	"service-users/app/customErrors"
+	"service-users/app/globals"
 	"service-users/app/storage"
 	"service-users/app/utils"
 )
 
 type Handler struct {
 	db      *storage.DbConnection
-	session *sessions.Session
 	writer  http.ResponseWriter
 	request *http.Request
 }
@@ -24,14 +22,12 @@ func CreateValidator() {
 	validate = validator.New()
 }
 
-func InitHandler(db *storage.DbConnection, sessionStorage storage.SessionStorage, w http.ResponseWriter, r *http.Request) *Handler {
-	session := sessionStorage.GetSession(r)
-
+func InitHandler(db *storage.DbConnection, w http.ResponseWriter, r *http.Request) *Handler {
 	return &Handler{
 		db:      db,
 		writer:  w,
 		request: r,
-		session: session}
+	}
 }
 
 func (h *Handler) ResponseWithError(msg string, statusCode int) {
@@ -91,11 +87,8 @@ func (h *Handler) checkValidations(s interface{}) []string {
 	return nil
 }
 
-func (h *Handler) getSessionUserId() (int, error) {
-	userId, ok := h.session.Values[storage.SessionUserIdKey].(int)
-	if !ok {
-		return 0, &customErrors.TypedStatusError{"Not authorized", http.StatusUnauthorized}
-	}
+func (h *Handler) getAuthUserId() (int, bool) {
+	userId, ok := h.request.Context().Value(globals.AuthUserIdKey).(uint)
 
-	return userId, nil
+	return int(userId), ok
 }

@@ -1,8 +1,8 @@
 package requests
 
 type RegisterRequest struct {
-	Name             string `validate:"required,max=128,alphaunicode"`
-	Surname          string `validate:"required,max=128,alphaunicode"`
+	Name             string `validate:"required,max=128,alphanumunicode"`
+	Surname          string `validate:"required,max=128,alphanumunicode"`
 	Age              int    `validate:"required,numeric,max=99,min=10"`
 	Interests        string `validate:"required,max=768"`
 	City             string `validate:"required"`

@@ -9,22 +9,20 @@ import (
 const SessionUserIdKey = "user_id"
 
 type SessionStorage struct {
-	config      *config.Config
 	CookieStore *sessions.CookieStore
 }
 
-func InitSession(config *config.Config) SessionStorage {
-	store := sessions.NewCookieStore([]byte(config.Server.SessionKey))
+func InitSession() SessionStorage {
+	store := sessions.NewCookieStore([]byte(config.Env.Server.SessionKey))
 
 	store.Options = &sessions.Options{
-		Domain:   config.Server.Host,
+		Domain:   config.Env.Server.Host,
 		Path:     "/",
 		MaxAge:   3600 * 24 * 7, // 1 week
 		HttpOnly: true,
 	}
 
 	session := SessionStorage{
-		config:      config,
 		CookieStore: store,
 	}
 

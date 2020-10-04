@@ -1,15 +1,31 @@
 import {httpRequest, RequestMessage} from '../api/http'
 import {routes} from "../router/routes";
+import {localStorageGet, localStorageSet, localStorageDelete} from "utils"
+import {default as globals} from "utils"
+import utils from "vue-infinite-loading/src/utils";
+
+const AUTH_TOKEN_KEY = 'token';
 
 export default {
     namespaced: true,
 
     state: () => ({
-        user: null
+        user: null,
+        token: null,
+        authCheckedTtl: 0
     }),
 
     actions: {
-        async checkAuth({commit}) {
+        async checkAuth({commit, getters}) {
+            if (getters.isAuthChecked) {
+                return null;
+            }
+
+            const token = localStorageGet(AUTH_TOKEN_KEY);
+            if (null !== token) {
+                commit('SET_TOKEN', token);
+            }
+
             const {responseMessage} = await httpRequest.get(routes.service_users.getUser);
 
             if (responseMessage.status) {
@@ -17,26 +33,32 @@ export default {
                 commit('SET_USER', user);
             }
 
+            commit('SET_CHECK_AUTH');
+
             return responseMessage
         },
 
-        async login({commit}, payload) {
+        async login({commit, state}, payload) {
             const {responseMessage} = await httpRequest.post(routes.service_users.login, new RequestMessage(payload));
 
             if (responseMessage.status) {
                 const {user} = responseMessage.data;
                 commit('SET_USER', user);
+                commit('SET_TOKEN', user.token.String);
+                localStorageSet(AUTH_TOKEN_KEY, state.token)
             }
 
             return responseMessage
         },
 
-        async register({commit}, payload) {
+        async register({commit, state}, payload) {
             const {responseMessage} = await httpRequest.post(routes.service_users.register, new RequestMessage(payload));
 
             if (responseMessage.status) {
                 const {user} = responseMessage.data;
                 commit('SET_USER', user);
+                commit('SET_TOKEN', user.token.String);
+                localStorageSet(AUTH_TOKEN_KEY, state.token)
             }
 
             return responseMessage
@@ -55,14 +77,27 @@ export default {
 
     mutations: {
         SET_USER(state, user) {
-            state.user = user
+            state.user = user;
+            state.isAuthChecked = true;
+        },
+        SET_CHECK_AUTH(state) {
+            state.authCheckedTtl = Date.now();
         },
         CLEAR_USER(state) {
-            state.user = null
+            state.user = null;
+            state.token = null;
+            localStorageDelete('token')
         },
+        SET_TOKEN(state, token) {
+            state.token = token;
+        }
     },
 
     getters: {
         getUser: state => state.user,
+        getToken: state => state.token,
+        isAuthChecked: state => {
+            return Date.now() < state.authCheckedTtl + globals.MINUTE * globals.MILLISECONDS
+        }
     }
 }

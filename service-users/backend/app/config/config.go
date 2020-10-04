@@ -6,6 +6,8 @@ import (
 	"strings"
 )
 
+var Env *Config
+
 type Config struct {
 	DB     DBConfig
 	Server Server
@@ -26,21 +28,21 @@ type Server struct {
 	Env        string
 	SessionKey string
 	Host       string
+	Port       string
 }
 
 func (s Server) IsDev() bool {
 	return "dev" == s.Env
 }
 
-func InitConfig() *Config {
-	return (&Config{}).initInner()
-}
-
-func (c *Config) initInner() *Config {
+func InitConfig() {
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
+		return
 	}
+
+	c := &Config{}
 
 	c.env, err = godotenv.Read()
 	if err != nil {
@@ -67,7 +69,8 @@ func (c *Config) initInner() *Config {
 		Env:        c.env["ENVIRONMENT"],
 		SessionKey: c.env["SESSION_KEY"],
 		Host:       c.env["SERVER_HOST"],
+		Port:       c.env["SERVER_PORT"],
 	}
 
-	return c
+	Env = c
 }

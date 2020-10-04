@@ -10,7 +10,7 @@
 
 <script>
 import HeaderBar from 'components/HeaderBar'
-import {mapGetters} from "vuex";
+import {mapGetters, mapMutations} from "vuex";
 
 export default {
     components: {

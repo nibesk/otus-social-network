@@ -5,7 +5,6 @@ import (
 	"github.com/pkg/errors"
 	"service-users/app/handlers/requests"
 	"service-users/app/models"
-	"service-users/app/storage"
 	"service-users/app/utils"
 )
 
@@ -19,7 +18,7 @@ func (h *Handler) ApiLoginHandler() error {
 		return h.error(violations)
 	}
 
-	user, err := models.UserFindByEmail(h.db, request.Email)
+	user, err := models.UserFindByEmail(h.db.GetDb(), request.Email)
 	switch true {
 	case errors.Is(err, sql.ErrNoRows):
 		return h.error("Password or email incorrect")
@@ -31,8 +30,13 @@ func (h *Handler) ApiLoginHandler() error {
 		return h.error("Password or email incorrect")
 	}
 
-	h.session.Values[storage.SessionUserIdKey] = user.User_id
-	h.session.Save(h.request, h.writer)
+	if "" == user.Token.String {
+		token := utils.CreateJWTToken(uint(user.User_id))
+		err = user.UpdateToken(h.db.GetDb(), token)
+		if nil != err {
+			return errors.Wrapf(err, "Can't update token")
+		}
+	}
 
 	return h.success(map[string]interface{}{
 		"user": user,
@@ -40,29 +44,34 @@ func (h *Handler) ApiLoginHandler() error {
 }
 
 func (h *Handler) ApiLogoutHandler() error {
-	h.session.Values[storage.SessionUserIdKey] = nil
-	h.session.Save(h.request, h.writer)
+	userId, _ := h.getAuthUserId()
+
+	user, err := models.UserFindById(h.db.GetDb(), userId)
+	switch true {
+	case errors.Is(err, sql.ErrNoRows):
+		return h.success(map[string]interface{}{"user": nil})
+	case nil != err:
+		return err
+	}
+
+	err = user.UpdateToken(h.db.GetDb(), nil)
+	if nil != err {
+		return errors.Wrapf(err, "Can't update token")
+	}
 
 	return h.success("Logout Success!")
 }
 
 func (h *Handler) ApiGetUserHandler() error {
-	userId, ok := h.session.Values[storage.SessionUserIdKey].(int)
+	userId, ok := h.getAuthUserId()
 	if !ok {
-		return h.success(map[string]interface{}{
-			"user": nil,
-		})
+		return h.success(map[string]interface{}{"user": nil})
 	}
 
-	user, err := models.UserFindById(h.db, userId)
+	user, err := models.UserFindById(h.db.GetDb(), userId)
 	switch true {
 	case errors.Is(err, sql.ErrNoRows):
-		h.session.Values[storage.SessionUserIdKey] = nil
-		h.session.Save(h.request, h.writer)
-
-		return h.success(map[string]interface{}{
-			"user": nil,
-		})
+		return h.success(map[string]interface{}{"user": nil})
 	case nil != err:
 		return err
 	}
@@ -82,8 +91,7 @@ func (h *Handler) ApiRegisterHandler() error {
 		return h.error(violations)
 	}
 
-	_, err := h.getSessionUserId()
-	if nil == err {
+	if _, ok := h.getAuthUserId(); ok {
 		return h.error("You are already logged in")
 	}
 
@@ -91,6 +99,12 @@ func (h *Handler) ApiRegisterHandler() error {
 	if nil != err {
 		return err
 	}
+
+	tr, err := h.db.GetDb().Begin()
+	if nil != err {
+		return errors.WithStack(err)
+	}
+	defer tr.Rollback()
 
 	user := &models.User{
 		Name:      request.Name,
@@ -103,15 +117,21 @@ func (h *Handler) ApiRegisterHandler() error {
 		Sex:       request.Sex,
 	}
 
-	_, err = models.UserCreate(h.db, user)
+	_, err = models.UserCreate(tr, user)
 	if nil != err {
 		return err
 	}
 
-	h.session.Values[storage.SessionUserIdKey] = user.User_id
-	h.session.Save(h.request, h.writer)
+	token := utils.CreateJWTToken(uint(user.User_id))
+	if err = user.UpdateToken(tr, token); nil != err {
+		return err
+	}
+
+	if err = tr.Commit(); nil != err {
+		return err
+	}
 
 	return h.success(map[string]interface{}{
-		"user": user.Public(),
+		"user": user,
 	})
 }

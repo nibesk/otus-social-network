@@ -1,6 +1,7 @@
 package models
 
 import (
+	"database/sql"
 	"fmt"
 	"github.com/VividCortex/mysqlerr"
 	"github.com/go-sql-driver/mysql"
@@ -17,17 +18,18 @@ const SexFemale = 2
 const SexOther = 3
 
 type User struct {
-	User_id    int    `json:"user_id"`
-	Name       string `json:"name"`
-	Email      string `json:"email"`
-	Surname    string `json:"surname"`
-	Age        int    `json:"age"`
-	Interests  string `json:"interests"`
-	City       string `json:"city"`
-	Sex        int    `json:"sex"`
-	Password   string `json:"-"`
-	Created_at string `json:"-"`
-	Updated_at string `json:"-"`
+	User_id    int            `json:"user_id"`
+	Name       string         `json:"name"`
+	Email      string         `json:"email"`
+	Surname    string         `json:"surname"`
+	Age        int            `json:"age"`
+	Interests  string         `json:"interests"`
+	City       string         `json:"city"`
+	Sex        int            `json:"sex"`
+	Password   string         `json:"-"`
+	Token      sql.NullString `json:"token"`
+	Created_at string         `json:"-"`
+	Updated_at string         `json:"-"`
 }
 
 func (u *User) getSexTitle() string {
@@ -58,8 +60,28 @@ func (u *User) Public() map[string]interface{} {
 	}
 }
 
-func UserCreate(conn *storage.DbConnection, user *User) (*User, error) {
-	db := conn.GetDb()
+func (u *User) UpdateToken(db storage.Executable, token interface{}) error {
+	stmt, err := db.Prepare("UPDATE `user` SET token = ? where user_id = ?")
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	result, err := stmt.Exec(token, u.User_id)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	stringToken, ok := token.(string)
+	if !ok {
+		u.Token = sql.NullString{String: ""}
+	} else {
+		u.Token = sql.NullString{String: stringToken}
+	}
+
+	return checkIsExecDidUpdate(result)
+}
+
+func UserCreate(db storage.Executable, user *User) (*User, error) {
 	insert, err := db.Prepare("INSERT INTO `user`(name, email, password, surname, age, city, interests, sex) VALUES(?, ?, ?, ?, ?, ?, ?, ?)")
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -84,9 +106,7 @@ func UserCreate(conn *storage.DbConnection, user *User) (*User, error) {
 	return user, nil
 }
 
-func UserFindById(conn *storage.DbConnection, userId int) (*User, error) {
-	db := conn.GetDb()
-
+func UserFindById(db storage.Queryable, userId int) (*User, error) {
 	query := db.QueryRow("SELECT * FROM user WHERE user_id = ?", userId)
 
 	user := &User{}
@@ -98,8 +118,7 @@ func UserFindById(conn *storage.DbConnection, userId int) (*User, error) {
 	return user, nil
 }
 
-func UserFindAllExceptUserId(conn *storage.DbConnection, userId int, searchParams requests.AvailableFriendsRequest) ([]*User, error) {
-	db := conn.GetCDb()
+func UserFindAllExceptUserId(db storage.Queryable, userId int, searchParams requests.AvailableFriendsRequest) ([]*User, error) {
 	queryParams := []interface{}{}
 	scrollSth := ""
 	if 0 != searchParams.LastViewedUserId {
@@ -138,9 +157,7 @@ func UserFindAllExceptUserId(conn *storage.DbConnection, userId int, searchParam
 	return collection, nil
 }
 
-func UserFindByEmail(conn *storage.DbConnection, email string) (*User, error) {
-	db := conn.GetDb()
-
+func UserFindByEmail(db storage.Queryable, email string) (*User, error) {
 	query := db.QueryRow("SELECT * FROM user WHERE email = ?", email)
 
 	user := &User{}
@@ -152,7 +169,7 @@ func UserFindByEmail(conn *storage.DbConnection, email string) (*User, error) {
 	return user, nil
 }
 
-func UserFindByUserIds(conn *storage.DbConnection, userIds []int) ([]*User, error) {
+func UserFindByUserIds(db storage.Queryable, userIds []int) ([]*User, error) {
 	if 0 == len(userIds) {
 		return []*User{}, nil
 	}
@@ -161,8 +178,6 @@ func UserFindByUserIds(conn *storage.DbConnection, userIds []int) ([]*User, erro
 	for i, id := range userIds {
 		args[i] = id
 	}
-
-	db := conn.GetDb()
 
 	query, err := db.Query("SELECT * FROM user WHERE user_id in (? "+strings.Repeat(",?", len(args)-1)+")", args...)
 	if err != nil {
@@ -182,9 +197,7 @@ func UserFindByUserIds(conn *storage.DbConnection, userIds []int) ([]*User, erro
 	return collection, nil
 }
 
-func UserFindFriendsForUser(conn *storage.DbConnection, userId int) ([]*User, error) {
-	db := conn.GetCDb()
-
+func UserFindFriendsForUser(db storage.Queryable, userId int) ([]*User, error) {
 	query, err := db.Query(
 		"SELECT u.* FROM user u "+
 			"JOIN user_relation ur ON u.user_id = ur.friend_user_id "+
@@ -213,6 +226,7 @@ func userQueryScan(scan func(dest ...interface{}) error, user *User) error {
 		&user.Name,
 		&user.Email,
 		&user.Password,
+		&user.Token,
 		&user.Surname,
 		&user.Created_at,
 		&user.Updated_at,

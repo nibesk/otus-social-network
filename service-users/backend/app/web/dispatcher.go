@@ -13,21 +13,16 @@ import (
 )
 
 type Dispatcher struct {
-	Router         *mux.Router
-	db             *storage.DbConnection
-	SessionStorage storage.SessionStorage
+	Router *mux.Router
+	db     *storage.DbConnection
 }
-
-var sessionStorage storage.SessionStorage
 
 func InitDispatcher(db *storage.DbConnection, config *config.Config) Dispatcher {
 	router := mux.NewRouter()
-	sessionStorage = storage.InitSession(config)
 
 	dispatcher := Dispatcher{
-		Router:         router,
-		SessionStorage: sessionStorage,
-		db:             db,
+		Router: router,
+		db:     db,
 	}
 
 	handlers.CreateValidator()
@@ -63,13 +58,15 @@ func (d *Dispatcher) Run(host string) {
 
 func (d *Dispatcher) handleRequest(handlerMethod func(h *handlers.Handler) error) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		h := handlers.InitHandler(d.db, d.SessionStorage, w, r)
+		h := handlers.InitHandler(d.db, w, r)
 		defer func() {
 			if r := recover(); r != nil {
 				log.Printf("Panic recovered in f: %w", r)
 				h.ResponseWithError("Internal server error", http.StatusInternalServerError)
 			}
 		}()
+
+		log.Printf("%s %s", r.Method, r.URL)
 
 		if err := handlerMethod(h); nil != err {
 			switch causedErr := errors.Cause(err).(type) {
