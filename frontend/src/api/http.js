@@ -51,7 +51,7 @@ class HttpRequest {
     }
 
     async execute(method, path, requestMessage, headers) {
-        console.log(`start execute request`, {requestFunction: method, path, requestMessage, headers});
+        console.log(`request`, {requestFunction: method, path, requestMessage, headers});
 
         const defaultHeaders = {headers: {"Content-Type": "application/json"}};
         if (null !== store.getters['user/getToken']) {
@@ -62,17 +62,22 @@ class HttpRequest {
         const responseMessage = new ResponseMessage();
 
         try {
+            headers = _.merge(defaultHeaders, headers);
+
             switch (method) {
                 case METHOD_GET:
-                    response = await this.axios.get(path, _.merge(defaultHeaders, headers));
+                    response = await this.axios.get(path, headers);
                     break;
 
                 case METHOD_POST:
-                    response = await this.axios.post(path, requestMessage.payload, _.merge(defaultHeaders, headers));
+                    response = await this.axios.post(
+                        path,
+                        typeof requestMessage === 'undefined' ? null : requestMessage.payload,
+                        headers
+                    );
                     break;
 
                 case METHOD_DELETE:
-                    headers = _.merge(defaultHeaders, headers);
                     headers.data = requestMessage.payload;
                     response = await this.axios.delete(path, headers);
                     break;

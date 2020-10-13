@@ -24,12 +24,23 @@ export default {
 </script>
 
 <style>
-body {
-    font-family: "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif;
-    color: #333;
-}
+    body {
+        font-family: "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif;
+        color: #333;
+    }
 
-html, body {
-    height: 100%;
-}
+    html, body {
+        height: 100%;
+    }
+
+    .page {
+        /*height: 90%*/
+    }
+
+    .app {
+        /*height: 100%;*/
+        /*flex-direction: column;*/
+        /*display: flex;*/
+        /*position: relative;*/
+    }
 </style>

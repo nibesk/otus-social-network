@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"service-users/app/config"
 	"service-users/app/storage"
+	"service-users/app/utils"
 	"service-users/app/web"
 )
 
@@ -15,6 +16,7 @@ type App struct {
 
 func Init() *App {
 	config.InitConfig()
+	utils.CreateValidator()
 
 	db, err := storage.ConnectDb()
 	if nil != err {

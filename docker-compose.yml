@@ -1,8 +1,10 @@
 version: '3'
 
 services:
+
   osn-users_backend:
     container_name: osn-users_backend
+    hostname: 'osn-users_backend'
     build: service-users/backend
     volumes:
       - ./service-users/backend:/backend
@@ -10,6 +12,15 @@ services:
       - 3000:3000
     depends_on:
       - osn-users_mysql-master
+    environment:
+      - DB_MASTER_URL=osn-users_mysql-master:3306
+      - DB_USERNAME=root
+      - DB_PASSWORD=mysql
+      - DB_NAME=dbase
+      - SERVER_PORT=3000
+    networks:
+      - otus-social-network
+
   osn-users_mysql-master:
     image: 'mysql:5.7'
     hostname: 'osn-users_mysql-master'
@@ -21,9 +32,29 @@ services:
       - ./service-users/database/master/data:/var/lib/mysql
       - ./service-users/database/master/log:/var/log/mysql
       - ./service-users/database/master/backup:/backup
+      - ./service-users/database/init_sql:/init_sql
     environment:
       - MYSQL_ROOT_PASSWORD=mysql
       - MYSQL_DATABASE=dbase
+    networks:
+      - otus-social-network
+
+  osn-chat_mongo:
+    image: mongo:latest
+    hostname: 'otn-chat_mongodb'
+    container_name: 'otn-chat_mongodb'
+    ports:
+      - 27017:27017
+    volumes:
+      - ./service-chat/database/data:/data/db
+      - ./service-chat/database/logs:/var/log/mongodb
+      - ./service-chat/database/conf/mongo.conf:/etc/mongo.conf
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=mongo
+    command: ["mongod", "-f", "/etc/mongo.conf", "--auth"]
+    networks:
+      - otus-social-network
 
   osn_nginx:
     container_name: osn_nginx
@@ -36,9 +67,17 @@ services:
       - osn-users_backend
     ports:
       - 8080:80
+    networks:
+      - otus-social-network
 
   osn_npm:
     container_name: osn_npm
     build: frontend
     volumes:
       - ./frontend:/frontend
+    networks:
+      - otus-social-network
+
+networks:
+  otus-social-network:
+    external: true

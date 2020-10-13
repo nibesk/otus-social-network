@@ -4,7 +4,7 @@ import 'vue-toast-notification/dist/theme-sugar.css';
 import 'assets/css/toast.css'
 
 Vue.use(VueToast, {
-  position: 'bottom-right',
+  position: 'top-right',
   duration: 5000,
   dismissible: true
 });

@@ -20,13 +20,13 @@ type Dispatcher struct {
 
 func InitDispatcher(db *storage.DbConnection, config *config.Config) Dispatcher {
 	router := mux.NewRouter()
+	router.NotFoundHandler = NotFoundHandler
 
 	dispatcher := Dispatcher{
 		Router: router,
 		db:     db,
 	}
 
-	handlers.CreateValidator()
 	initRoutes(dispatcher)
 
 	return dispatcher
@@ -79,9 +79,12 @@ func (d *Dispatcher) handleRequest(handlerMethod func(h *handlers.Handler) error
 				h.ResponseWithError(causedErr.Msg, causedErr.Status)
 			default:
 				h.ResponseWithError("Internal server error", http.StatusInternalServerError)
+				log.Printf("Error occured: %+v\n", err)
 			}
-
-			log.Printf("Error occured: %+v\n", err)
 		}
 	}
 }
+
+var NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	utils.SendResponseJsonWithStatusCode(w, utils.ResponseErrorMessage("This resources was not found on our server"), http.StatusNotFound)
+})

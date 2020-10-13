@@ -3,22 +3,22 @@ package config
 import (
 	"github.com/joho/godotenv"
 	"log"
+	"os"
 )
 
 type Config struct {
-	DB     DBConfig
-	Server Server
-	env    map[string]string
+	DB       DBConfig
+	Server   Server
+	Services Services
+	env      map[string]string
 }
 
 type DBConfig struct {
-	Dialect      string
-	MasterUrl    string
-	ReplicasUrls []string
-	Username     string
-	Password     string
-	Database     string
-	Charset      string
+	Dialect  string
+	Url      string
+	Username string
+	Password string
+	Database string
 }
 
 type Server struct {
@@ -29,6 +29,10 @@ type Server struct {
 	WsCheckOrigin bool
 }
 
+type Services struct {
+	UsersUrl string
+}
+
 func (s Server) IsDev() bool {
 	return "dev" == s.Env
 }
@@ -36,34 +40,53 @@ func (s Server) IsDev() bool {
 var Env *Config
 
 func InitConfig() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
+	var envFileName string
+	var err error
+
+	if _, err = os.Stat(".env"); os.IsNotExist(err) {
+		envFileName = ".env.example"
+	} else {
+		envFileName = ".env"
 	}
 
 	c := &Config{}
 
-	c.env, err = godotenv.Read()
+	c.env, err = godotenv.Read(envFileName)
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Fatalf("Error loading .env file: %+v", err)
 	}
 
 	c.DB = DBConfig{
-		Dialect:   c.env["DB_DIALECT"],
-		MasterUrl: c.env["DB_URL"],
-		Username:  c.env["DB_USERNAME"],
-		Password:  c.env["DB_PASSWORD"],
-		Database:  c.env["DB_NAME"],
+		Dialect:  c.getVar("DB_DIALECT"),
+		Url:      c.getVar("DB_URL"),
+		Username: c.getVar("DB_USERNAME"),
+		Password: c.getVar("DB_PASSWORD"),
+		Database: c.getVar("DB_NAME"),
 	}
 
-	wsCheckOrigin := ("1" == c.env["SERVER_WS_CHECK_ORIGIN"])
+	wsCheckOrigin := ("1" == c.getVar("SERVER_WS_CHECK_ORIGIN"))
 
 	c.Server = Server{
-		Env:           c.env["ENVIRONMENT"],
-		Host:          c.env["SERVER_HOST"],
-		Port:          c.env["SERVER_PORT"],
+		Env:           c.getVar("ENVIRONMENT"),
+		Host:          c.getVar("SERVER_HOST"),
+		Port:          c.getVar("SERVER_PORT"),
 		WsCheckOrigin: wsCheckOrigin,
 	}
 
+	c.Services = Services{
+		UsersUrl: c.getVar("SERVICE_USERS_URL"),
+	}
+
 	Env = c
+}
+
+func (c *Config) getVar(key string) string {
+	var val string
+
+	val = os.Getenv(key)
+	if "" == val {
+		val = c.env[key]
+	}
+
+	return val
 }

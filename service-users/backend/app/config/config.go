@@ -3,6 +3,7 @@ package config
 import (
 	"github.com/joho/godotenv"
 	"log"
+	"os"
 	"strings"
 )
 
@@ -36,41 +37,54 @@ func (s Server) IsDev() bool {
 }
 
 func InitConfig() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-		return
+	var envFileName string
+	if _, err := os.Stat(".env"); os.IsNotExist(err) {
+		envFileName = ".env.example"
+	} else {
+		envFileName = ".env"
 	}
 
 	c := &Config{}
 
-	c.env, err = godotenv.Read()
+	var err error
+	c.env, err = godotenv.Read(envFileName)
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Fatalf("Error loading .env file: %+v", err)
 	}
 
-	replicasUrlsEnv := c.env["DB_REPLICA_URLS"]
+	replicasUrlsEnv := c.getVar("DB_REPLICA_URLS")
 	var replicasUrlsList []string
 	if "" != replicasUrlsEnv {
 		replicasUrlsList = strings.Split(replicasUrlsEnv, ",")
 	}
 
 	c.DB = DBConfig{
-		Dialect:      c.env["DB_DIALECT"],
-		MasterUrl:    c.env["DB_MASTER_URL"],
+		Dialect:      c.getVar("DB_DIALECT"),
+		MasterUrl:    c.getVar("DB_MASTER_URL"),
 		ReplicasUrls: replicasUrlsList,
-		Username:     c.env["DB_USERNAME"],
-		Password:     c.env["DB_PASSWORD"],
-		Database:     c.env["DB_NAME"],
-		Charset:      c.env["DB_CHARSET"],
+		Username:     c.getVar("DB_USERNAME"),
+		Password:     c.getVar("DB_PASSWORD"),
+		Database:     c.getVar("DB_NAME"),
+		Charset:      c.getVar("DB_CHARSET"),
 	}
 
 	c.Server = Server{
-		Env:        c.env["ENVIRONMENT"],
-		SessionKey: c.env["SESSION_KEY"],
-		Host:       c.env["SERVER_HOST"],
-		Port:       c.env["SERVER_PORT"],
+		Env:        c.getVar("ENVIRONMENT"),
+		SessionKey: c.getVar("SESSION_KEY"),
+		Host:       c.getVar("SERVER_HOST"),
+		Port:       c.getVar("SERVER_PORT"),
 	}
 
 	Env = c
+}
+
+func (c *Config) getVar(key string) string {
+	var val string
+
+	val = os.Getenv(key)
+	if "" == val {
+		val = c.env[key]
+	}
+
+	return val
 }

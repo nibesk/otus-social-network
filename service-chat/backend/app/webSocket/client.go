@@ -4,67 +4,66 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/gorilla/websocket"
+	"github.com/pkg/errors"
 	"log"
+	"runtime/debug"
+	"service-chat/app/customErrors"
+	"service-chat/app/services"
 	"time"
 )
 
-// Event struct of socket events
-type Event struct {
-	Event   string      `json:"event"`
-	Payload interface{} `json:"payload"`
-}
-
 // Client is a middleman between the websocket connection and the hub.
 type Client struct {
-	hub      *Hub
-	wsConn   *websocket.Conn
-	send     chan Event
-	username string
-	userID   string
+	hub    *Hub
+	wsConn *websocket.Conn
+	send   chan Event
+	id     string
+	token  string
+	user   *services.UserModel
 }
 
-func (client *Client) handleIncomingEvents(incomingEvent Event) {
-	switch incomingEvent.Event {
-	case eventJoin:
-		log.Printf("client [%s]. Join Event triggered", client.username)
-
-		responseEvent := Event{
-			Event: incomingEvent.Event,
-			Payload: JoinDisconnectPayload{
-				UserID: client.userID,
-				Users:  client.hub.getAllConnectedUsers(),
-			},
+// Incoming events handler
+func (client *Client) handleIncomingEvents(e Event) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("[PANIC] %w; Stack trace %s", r, string(debug.Stack()))
 		}
+	}()
 
-		// do not send messages to current user on join incomingEvent. Raise condition in channel "client.send". Use mutex on client if required
-		client.hub.BroadcastToAllClientsExceptOne(responseEvent, *client)
+	log.Printf(">>%s from client [%s]", e.Event, client.id)
 
-	case eventDisconnect:
-		log.Printf("client [%s]. Disconnect Event triggered", client.username)
+	h := Handler{client: client}
 
-		responseEvent := Event{
-			Event: incomingEvent.Event,
-			Payload: JoinDisconnectPayload{
-				UserID: client.userID,
-				Users:  client.hub.getAllConnectedUsers(),
-			},
-		}
+	// check if users authorized in service
+	if "" == client.token && eventStartUp != e.Event {
+		h.sendErrorsToSelf("client has empty token. send startup event")
 
-		client.hub.BroadcastToAllClientsExceptOne(responseEvent, *client)
+		return
+	}
 
+	if eventStartUp == e.Event && nil != client.user {
+		h.sendErrorsToSelf("client already authorized")
+
+		return
+	}
+
+	var err error
+	switch e.Event {
 	case eventMessage:
-		log.Printf("client [%s]. Message Event triggered", client.username)
+		err = h.MessageHandler(e)
+	case eventStartUp:
+		err = h.StartUpHandler(e)
+	}
 
-		selectedUserID := incomingEvent.Payload.(map[string]interface{})["userId"].(string)
-		responseEvent := Event{
-			Event: "message",
-			Payload: map[string]interface{}{
-				"username": client.hub.getUsernameByUserID(selectedUserID),
-				"message":  incomingEvent.Payload.(map[string]interface{})["message"],
-				"userId":   selectedUserID,
-			},
+	if nil != err {
+		switch causedErr := errors.Cause(err).(type) {
+		case *customErrors.TypedError:
+			h.sendErrorsToSelf(causedErr.Msg)
+		default:
+			h.sendErrorsToSelf("Something went wrong...")
 		}
-		client.hub.EmitToClient(responseEvent, selectedUserID)
+
+		log.Printf("[ERROR] %+v\n", err)
 	}
 }
 
@@ -77,7 +76,7 @@ func (c *Client) readPump() {
 	defer func() {
 		c.hub.unregister <- c
 		c.wsConn.Close()
-		log.Printf("[CLOSE CONNECTION] client [%c]", c.username)
+		log.Printf("[CLOSE CONNECTION] client [%s]", c.id)
 	}()
 
 	c.wsConn.SetReadLimit(maxMessageSize)
@@ -88,21 +87,18 @@ func (c *Client) readPump() {
 
 	for {
 		_, payload, err := c.wsConn.ReadMessage()
-
 		if err != nil {
-			var unexpectedCloseError string
-			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				unexpectedCloseError = "IsUnexpectedCloseError"
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure, websocket.CloseNoStatusReceived) {
+				log.Printf("[UnexpectedCloseError] readPump cycle break: %v", err)
 			}
-			log.Printf("[ERROR] readPump cycle break %s: %v", unexpectedCloseError, err)
+
 			break
 		}
 
 		decoder := json.NewDecoder(bytes.NewReader(payload))
-		decoderErr := decoder.Decode(&event)
+		if err := decoder.Decode(&event); err != nil {
+			log.Printf("[ERROR] readPump decoder: %+v", err)
 
-		if decoderErr != nil {
-			log.Printf("[ERROR] readPump decoder: %+v", decoderErr)
 			break
 		}
 
@@ -125,6 +121,9 @@ func (c *Client) writePump() {
 	for {
 		select {
 		case payload, ok := <-c.send:
+
+			log.Printf("<<%s to client [%s]", payload.Event, c.id)
+
 			reqBodyBytes := new(bytes.Buffer)
 			json.NewEncoder(reqBodyBytes).Encode(payload)
 			finalPayload := reqBodyBytes.Bytes()

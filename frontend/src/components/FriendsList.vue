@@ -6,7 +6,8 @@
                 <p class="mb-0 friend__email">{{ friend.age }} years old</p>
                 <p class="mb-0 friend__email">{{ friend.email }}</p>
             </div>
-            <div>
+            <div style="display: flex">
+                <router-link class="btn btn-secondary" :to="{name: 'chat', params: {userId: friend.user_id}}" style="margin-right: 10px">💬️</router-link>
                 <button @click="deleteFriend(friend)" class="btn btn-danger">Remove</button>
             </div>
         </li>

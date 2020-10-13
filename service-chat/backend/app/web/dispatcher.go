@@ -17,6 +17,8 @@ type Dispatcher struct {
 
 func InitDispatcher() Dispatcher {
 	router := mux.NewRouter()
+	router.NotFoundHandler = NotFoundHandler
+
 	dispatcher := Dispatcher{Router: router}
 	initRoutes(dispatcher)
 
@@ -72,3 +74,7 @@ func (d *Dispatcher) handleRequest(handlerMethod func(h *handlers.Handler) error
 		}
 	}
 }
+
+var NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	utils.SendResponseJsonWithStatusCode(w, utils.ResponseErrorMessage("This resources was not found on our server"), http.StatusNotFound)
+})

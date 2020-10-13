@@ -5,16 +5,44 @@ import (
 	"net/http"
 )
 
-func ResponseMessage(status bool, message string) map[string]interface{} {
-	return map[string]interface{}{"status": status, "message": message}
+type ResponseSuccessStruct struct {
+	Status bool        `json:"status"`
+	Data   interface{} `json:"data"`
 }
 
-func ResponseData(data interface{}) map[string]interface{} {
-	return map[string]interface{}{"status": true, "data": data}
+type ResponseErrorsStruct struct {
+	Status bool     `json:"status"`
+	Errors []string `json:"errors"`
 }
 
-func ResponseErrors(errors interface{}) map[string]interface{} {
-	return map[string]interface{}{"status": false, "errors": errors}
+func ResponseSuccessMessage(message string) ResponseSuccessStruct {
+	return ResponseSuccessStruct{
+		Status: true,
+		Data: map[string]string{
+			"message": message,
+		},
+	}
+}
+
+func ResponseData(data interface{}) ResponseSuccessStruct {
+	return ResponseSuccessStruct{
+		Status: true,
+		Data:   data,
+	}
+}
+
+func ResponseErrors(errors interface{}) ResponseErrorsStruct {
+	return ResponseErrorsStruct{
+		Status: false,
+		Errors: errors.([]string),
+	}
+}
+
+func ResponseErrorMessage(message string) ResponseErrorsStruct {
+	return ResponseErrorsStruct{
+		Status: false,
+		Errors: []string{message},
+	}
 }
 
 func SendResponseJson(w http.ResponseWriter, data interface{}) {

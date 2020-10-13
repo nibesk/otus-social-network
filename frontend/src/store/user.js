@@ -1,8 +1,7 @@
 import {httpRequest, RequestMessage} from '../api/http'
-import {routes} from "../router/routes";
+import {routes} from "../config/routes";
 import {localStorageGet, localStorageSet, localStorageDelete} from "utils"
 import {default as globals} from "utils"
-import utils from "vue-infinite-loading/src/utils";
 
 const AUTH_TOKEN_KEY = 'token';
 

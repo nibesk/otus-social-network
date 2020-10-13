@@ -4,20 +4,15 @@ import (
 	"fmt"
 	"github.com/go-playground/validator"
 	"net/http"
+	"service-chat/app/customErrors"
 	"service-chat/app/utils"
+	"strings"
 )
 
 type Handler struct {
 	writer          http.ResponseWriter
 	request         *http.Request
 	isBlockResponse bool
-}
-
-// use a single instance of Validate, it caches struct info
-var validate *validator.Validate
-
-func CreateValidator() {
-	validate = validator.New()
 }
 
 func InitHandler(w http.ResponseWriter, r *http.Request) *Handler {
@@ -38,7 +33,7 @@ func (h *Handler) ResponseWithError(msg string, statusCode int) {
 	}
 
 	if utils.IsJsonRequest(h.request) {
-		utils.SendResponseJsonWithStatusCode(h.writer, utils.ResponseMessage(false, msg), statusCode)
+		utils.SendResponseJsonWithStatusCode(h.writer, utils.ResponseErrorMessage(msg), statusCode)
 	} else {
 		http.Error(h.writer, msg, statusCode)
 	}
@@ -57,7 +52,7 @@ func (h *Handler) success(data interface{}) error {
 
 	switch v := data.(type) {
 	case string:
-		message = utils.ResponseMessage(true, v)
+		message = utils.ResponseSuccessMessage(v)
 	default:
 		message = utils.ResponseData(v)
 	}
@@ -76,7 +71,7 @@ func (h *Handler) error(data interface{}) error {
 
 	switch v := data.(type) {
 	case string:
-		message = utils.ResponseMessage(false, v)
+		message = utils.ResponseErrorMessage(v)
 	default:
 		message = utils.ResponseErrors(v)
 	}
@@ -87,7 +82,7 @@ func (h *Handler) error(data interface{}) error {
 }
 
 func (h *Handler) checkValidations(s interface{}) []string {
-	err := validate.Struct(s)
+	err := utils.GetValidator().Struct(s)
 
 	if err != nil {
 		violations := make([]string, 0, 5)
@@ -99,4 +94,19 @@ func (h *Handler) checkValidations(s interface{}) []string {
 	}
 
 	return nil
+}
+
+func (h *Handler) getAuthorizationHeader() (string, error) {
+	tokenHeader := h.request.Header.Get("Authorization")
+	if tokenHeader == "" {
+		return "", customErrors.TypedError{"Missing auth token"}
+	}
+
+	// because inside should be "Bearer JWT"
+	splitted := strings.Split(tokenHeader, " ")
+	if len(splitted) != 2 {
+		return "", customErrors.TypedError{"Invalid/Malformed auth token"}
+	}
+
+	return splitted[1], nil
 }

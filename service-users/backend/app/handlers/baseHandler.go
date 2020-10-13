@@ -3,8 +3,10 @@ package handlers
 import (
 	"fmt"
 	"github.com/go-playground/validator"
+	"github.com/pkg/errors"
 	"net/http"
 	"service-users/app/globals"
+	"service-users/app/models"
 	"service-users/app/storage"
 	"service-users/app/utils"
 )
@@ -13,13 +15,6 @@ type Handler struct {
 	db      *storage.DbConnection
 	writer  http.ResponseWriter
 	request *http.Request
-}
-
-// use a single instance of Validate, it caches struct info
-var validate *validator.Validate
-
-func CreateValidator() {
-	validate = validator.New()
 }
 
 func InitHandler(db *storage.DbConnection, w http.ResponseWriter, r *http.Request) *Handler {
@@ -32,7 +27,7 @@ func InitHandler(db *storage.DbConnection, w http.ResponseWriter, r *http.Reques
 
 func (h *Handler) ResponseWithError(msg string, statusCode int) {
 	if utils.IsJsonRequest(h.request) {
-		utils.SendResponseJsonWithStatusCode(h.writer, utils.ResponseMessage(false, msg), statusCode)
+		utils.SendResponseJsonWithStatusCode(h.writer, utils.ResponseErrorMessage(msg), statusCode)
 	} else {
 		http.Error(h.writer, msg, statusCode)
 	}
@@ -47,7 +42,7 @@ func (h *Handler) success(data interface{}) error {
 
 	switch v := data.(type) {
 	case string:
-		message = utils.ResponseMessage(true, v)
+		message = utils.ResponseSuccessMessage(v)
 	default:
 		message = utils.ResponseData(v)
 	}
@@ -62,7 +57,7 @@ func (h *Handler) error(data interface{}) error {
 
 	switch v := data.(type) {
 	case string:
-		message = utils.ResponseMessage(false, v)
+		message = utils.ResponseErrorMessage(v)
 	default:
 		message = utils.ResponseErrors(v)
 	}
@@ -73,7 +68,7 @@ func (h *Handler) error(data interface{}) error {
 }
 
 func (h *Handler) checkValidations(s interface{}) []string {
-	err := validate.Struct(s)
+	err := utils.GetValidator().Struct(s)
 
 	if err != nil {
 		violations := make([]string, 0, 5)
@@ -91,4 +86,20 @@ func (h *Handler) getAuthUserId() (int, bool) {
 	userId, ok := h.request.Context().Value(globals.AuthUserIdKey).(uint)
 
 	return int(userId), ok
+}
+
+var ErrNoAuthUserId = errors.New("UserId doesn't persist in account")
+
+func (h *Handler) getAuthUser() (*models.User, error) {
+	userId, ok := h.request.Context().Value(globals.AuthUserIdKey).(uint)
+	if !ok {
+		return nil, ErrNoAuthUserId
+	}
+
+	user, err := models.UserFindById(h.db.GetDb(), int(userId))
+	if nil != err {
+		return nil, errors.WithStack(err)
+	}
+
+	return user, nil
 }

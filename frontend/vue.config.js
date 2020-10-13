@@ -1,17 +1,18 @@
 const path = require('path');
 
+
 module.exports = {
     outputDir: path.resolve(__dirname, './build/public'),
     indexPath: path.resolve(__dirname, './build/index.html'),
     configureWebpack: {
         devServer: {
             proxy: {
-                '/users': {
-                    target: process.env.DEV_BACKEND_URL,
+                '/api/users': {
+                    target: process.env.DEV_SERVICE_USERS_URL,
                     changeOrigin: true
                 },
-                '/uploads': {
-                    target: process.env.DEV_BACKEND_URL
+                '/api/chat': {
+                    target: process.env.DEV_SERVICE_CHAT_URL
                 },
             }
         },

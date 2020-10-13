@@ -25,6 +25,9 @@ func initRoutes(d Dispatcher) {
 	d.Get(globals.ApiAvailableFriendRoute, d.handleRequest(func(h *handlers.Handler) error {
 		return h.ApiGetAvailableFriendsHandler()
 	}))
+	d.Get(globals.ApiGetUserByIdRoute, d.handleRequest(func(h *handlers.Handler) error {
+		return h.ApiGetUserByIdHandler()
+	}))
 
 	// AuthHandler
 	d.Post(globals.ApiLoginRoute, d.handleRequest(func(h *handlers.Handler) error {

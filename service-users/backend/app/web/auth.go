@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
-	"log"
 	"net/http"
 	"service-users/app/config"
 	"service-users/app/globals"
@@ -22,7 +21,7 @@ var SessionAuthentication = func(next http.Handler) http.Handler {
 		}
 
 		if err != nil {
-			utils.SendResponseJsonWithStatusCode(w, utils.ResponseMessage(false, err.Error()), http.StatusForbidden)
+			utils.SendResponseJsonWithStatusCode(w, utils.ResponseErrorMessage(err.Error()), http.StatusForbidden)
 			return
 		}
 
@@ -54,8 +53,6 @@ func validateJwt(w http.ResponseWriter, r *http.Request) (*http.Request, error) 
 	if !token.Valid {
 		return r, errors.New("Token is not valid")
 	}
-
-	log.Printf("User is logged in %", tk.UserId) //Useful for monitoring
 
 	// add userId to current request context
 	ctx := context.WithValue(r.Context(), globals.AuthUserIdKey, tk.UserId)

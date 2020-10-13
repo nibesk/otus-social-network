@@ -1,5 +1,5 @@
 import {httpRequest, RequestMessage} from '../api/http'
-import {routes} from "../router/routes";
+import {routes} from "../config/routes";
 import _ from 'lodash'
 
 export default {
@@ -43,6 +43,18 @@ export default {
             }
 
             return responseMessage
+        },
+
+        async getUserById({commit}, userId) {
+            const {responseMessage} = await httpRequest.get(routes.service_users.getUserById(userId));
+
+            if (responseMessage.status) {
+                const {user} = responseMessage.data;
+
+                return user;
+            }
+
+            return null;
         },
 
         async apiDeleteFriend({commit}, payload) {

@@ -3,9 +3,11 @@ package handlers
 import (
 	"database/sql"
 	"fmt"
+	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"service-users/app/handlers/requests"
 	"service-users/app/models"
+	"strconv"
 )
 
 func (h *Handler) ApiGetAvailableFriendsHandler() error {
@@ -61,6 +63,32 @@ func (h *Handler) ApiGetFriendsHandler() error {
 
 	return h.success(map[string]interface{}{
 		"users": usersPublic,
+	})
+}
+
+func (h *Handler) ApiGetUserByIdHandler() error {
+	userIdString, ok := mux.Vars(h.request)["userId"]
+	if !ok {
+		return h.error("userId is required")
+	}
+
+	userId, err := strconv.Atoi(userIdString)
+	if nil != err {
+		return h.error("userId must be a number")
+	}
+
+	user, err := models.UserFindById(h.db.GetDb(), userId)
+	switch true {
+	case errors.Is(err, sql.ErrNoRows):
+		return h.success(map[string]interface{}{
+			"users": nil,
+		})
+	case nil != err:
+		return err
+	}
+
+	return h.success(map[string]interface{}{
+		"user": user.Public(),
 	})
 }
 

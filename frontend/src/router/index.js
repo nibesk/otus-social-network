@@ -5,10 +5,11 @@ import store from '@/store'
 import IndexPage from '../pages/IndexPage'
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
-import {routes} from '../router/routes'
+import {routes} from '../config/routes'
 import FlowPage from "../pages/FlowPage";
 import NotFoundPage from "../pages/NotFoundPage";
 import FriendsPage from "../pages/FriendsPage";
+import ChatPage from "../pages/ChatPage";
 
 Vue.use(Router);
 
@@ -39,6 +40,11 @@ const router = new Router({
             path: routes.register,
             name: 'register',
             component: RegisterPage
+        },
+        {
+            path: routes.chat,
+            name: 'chat',
+            component: ChatPage
         },
         {
             path: '*',
