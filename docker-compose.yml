@@ -2,18 +2,18 @@ version: '3'
 
 services:
 
-  osn-users_backend:
-    container_name: osn-users_backend
-    hostname: 'osn-users_backend'
+  osn__users_backend:
+    container_name: osn__users_backend
+    hostname: 'osn__users_backend'
     build: service-users/backend
     volumes:
       - ./service-users/backend:/backend
     ports:
       - 3000:3000
     depends_on:
-      - osn-users_mysql-master
+      - osn__users_mysql-master
     environment:
-      - DB_MASTER_URL=osn-users_mysql-master:3306
+      - DB_MASTER_URL=osn__users_mysql-master:3306
       - DB_USERNAME=root
       - DB_PASSWORD=mysql
       - DB_NAME=dbase
@@ -21,10 +21,10 @@ services:
     networks:
       - otus-social-network
 
-  osn-users_mysql-master:
+  osn__users_mysql-master:
     image: 'mysql:5.7'
-    hostname: 'osn-users_mysql-master'
-    container_name: 'osn-users_mysql-master'
+    hostname: 'osn__users_mysql-master'
+    container_name: 'osn__users_mysql-master'
     ports:
       - 3307:3306
     volumes:
@@ -39,7 +39,7 @@ services:
     networks:
       - otus-social-network
 
-  osn-chat_mongo:
+  osn__chat_mongo:
     image: mongo:latest
     hostname: 'otn-chat_mongodb'
     container_name: 'otn-chat_mongodb'
@@ -49,6 +49,7 @@ services:
       - ./service-chat/database/data:/data/db
       - ./service-chat/database/logs:/var/log/mongodb
       - ./service-chat/database/conf/mongo.conf:/etc/mongo.conf
+      - ./service-chat/database/init:/init
     environment:
       - MONGO_INITDB_ROOT_USERNAME=root
       - MONGO_INITDB_ROOT_PASSWORD=mongo
@@ -56,22 +57,42 @@ services:
     networks:
       - otus-social-network
 
-  osn_nginx:
+  osn__chat_backend:
+    container_name: osn__chat_backend
+    hostname: 'osn__chat_backend'
+    build: service-chat/backend
+    volumes:
+      - ./service-chat/backend:/backend
+    ports:
+      - 3001:3001
+    depends_on:
+      - osn__chat_mongo
+    environment:
+      - DB_URL=osn__chat_mongo:27017
+      - DB_USERNAME=root
+      - DB_PASSWORD=mongo
+      - DB_NAME=chat
+      - SERVER_PORT=3001
+      - SERVICE_USERS_URL=http://osn__users_backend:3000
+    networks:
+      - otus-social-network
+
+  osn__nginx:
     container_name: osn_nginx
     image: nginx:latest
     volumes:
       - ./nginx/hosts:/etc/nginx/conf.d
       - ./frontend:/var/www/site
       - ./nginx/logs:/var/log/nginx
-    links:
-      - osn-users_backend
+    depends_on:
+      - osn__users_backend
     ports:
       - 8080:80
     networks:
       - otus-social-network
 
-  osn_npm:
-    container_name: osn_npm
+  osn__npm:
+    container_name: osn__npm
     build: frontend
     volumes:
       - ./frontend:/frontend

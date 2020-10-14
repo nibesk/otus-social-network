@@ -4,7 +4,6 @@ import (
 	"context"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"service-chat/app/storage"
 	"time"
@@ -52,10 +51,6 @@ func MessageFilter(filter interface{}, options *options.FindOptions) ([]*Message
 
 	// once exhausted, close the cursor
 	cur.Close(ctx)
-
-	if len(messages) == 0 {
-		return messages, mongo.ErrNoDocuments
-	}
 
 	return messages, nil
 }

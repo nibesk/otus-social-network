@@ -1,7 +1,10 @@
-# To run
+# To fresh run
 ````
-> make env 
-> make fix-mysql-rights 
-> docker-compose up
-> mysql -h 127.0.0.1 -P 3307 -uroot -pmysql dbase < database/initdb.sql
+> make fix-rights 
+> docker-compose up --build
+> make db-init
 ````
+
+Open url in browser http://localhost:8080/
+
+You are all set:)

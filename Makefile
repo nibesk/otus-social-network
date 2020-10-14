@@ -1,9 +1,3 @@
-env:
-	cp backend\example.env backend\.env
-
-start:
-	docker-compose up -d osn-users_mysql-master osn-users_backend osn_npm
-
 preview:
 	docker-compose up
 
@@ -21,3 +15,9 @@ mongo-clear:
 
 force_recreate:
 	docker-compose up --build --force-recreate $(n)
+
+db-init:
+	docker exec -i -t otn__chat_mongodb sh -c "mongo -u root -p mongo < /init/init"
+	docker exec -i -t osn__users_mysql-master sh -c "mysql -uroot -pmysql dbase < /init_sql/initdb.sql"
+	docker exec -i -t osn__users_mysql-master sh -c "mysql -uroot -pmysql dbase < /init_sql/mock_users.sql"
+
