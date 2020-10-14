@@ -10,20 +10,33 @@ import (
 )
 
 type Message struct {
-	Text         string    `bson:"text"`
-	From_user_id int       `bson:"from_user_id"`
-	To_user_id   int       `bson:"to_user_id"`
-	CreatedAt    time.Time `bson:"created_at"`
-	UpdatedAt    time.Time `bson:"updated_at"`
+	ID        primitive.ObjectID `bson:"_id"`
+	Text      string             `bson:"text"`
+	Thread_id primitive.ObjectID `bson:"thread_id"`
+	User_id   int                `bson:"from_user_id"`
+	CreatedAt time.Time          `bson:"created_at"`
+	UpdatedAt time.Time          `bson:"updated_at"`
 }
 
 const messagesDbName = "messages"
 
 func MessageCreate(message *Message) error {
+	message.ID = primitive.NewObjectID()
+	message.CreatedAt = time.Now()
+	message.UpdatedAt = time.Now()
+
 	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
 	_, err := storage.Mongo.Db.Collection(messagesDbName).InsertOne(ctx, message)
 
 	return err
+}
+
+func MessageFindConversation(thread_id primitive.ObjectID) ([]*Message, error) {
+	options := options.Find()
+	options.SetSort(bson.D{{"created_at", 1}})
+	filter := bson.D{{"thread_id", thread_id}}
+
+	return MessageFilter(filter, options)
 }
 
 func MessageFilter(filter interface{}, options *options.FindOptions) ([]*Message, error) {
@@ -53,21 +66,4 @@ func MessageFilter(filter interface{}, options *options.FindOptions) ([]*Message
 	cur.Close(ctx)
 
 	return messages, nil
-}
-
-func MessageFindConversation(fromUserId, toUserId int) ([]*Message, error) {
-	options := options.Find()
-	options.SetSort(bson.D{{"created_at", 1}})
-
-	filter := bson.D{
-		primitive.E{
-			Key: "$or",
-			Value: []interface{}{
-				bson.D{{"from_user_id", fromUserId}, {"to_user_id", toUserId}},
-				bson.D{{"from_user_id", toUserId}, {"to_user_id", fromUserId}},
-			},
-		},
-	}
-
-	return MessageFilter(filter, options)
 }

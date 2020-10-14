@@ -64,7 +64,12 @@ func (h *Handler) GetMessages() error {
 		return err
 	}
 
-	messages, err := models.MessageFindConversation(user.User_id, friendUserIdInt)
+	t, err := models.ThreadInsure(user.User_id, friendUserIdInt)
+	if nil != err {
+		return err
+	}
+
+	messages, err := models.MessageFindConversation(t.ID)
 	if nil != err {
 		return err
 	}
@@ -73,7 +78,7 @@ func (h *Handler) GetMessages() error {
 	for i, m := range messages {
 		messagesWithUser[i] = &webSocket.MessageToClientPayload{
 			Message:   m.Text,
-			UserId:    m.From_user_id,
+			UserId:    m.User_id,
 			Timestamp: m.CreatedAt.Unix(),
 		}
 	}

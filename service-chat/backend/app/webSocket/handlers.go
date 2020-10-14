@@ -46,12 +46,15 @@ func (h *Handler) MessageHandler(event Event) error {
 		},
 	}
 
+	t, err := models.ThreadInsure(h.client.user.User_id, payload.UserId)
+	if nil != err {
+		return err
+	}
+
 	m := &models.Message{
-		Text:         payload.Message,
-		From_user_id: h.client.user.User_id,
-		To_user_id:   payload.UserId,
-		CreatedAt:    time.Now(),
-		UpdatedAt:    time.Now(),
+		Text:      payload.Message,
+		User_id:   h.client.user.User_id,
+		Thread_id: t.ID,
 	}
 	models.MessageCreate(m)
 
