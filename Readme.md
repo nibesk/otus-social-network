@@ -1,7 +1,7 @@
 # To fresh run
 ````
 > make fix-rights 
-> docker-compose up --build
+> docker-compose up --build -d
 > make db-init
 ````
 
