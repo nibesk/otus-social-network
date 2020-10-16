@@ -1,7 +1,7 @@
 # To fresh run
 ```
 > make fresh_run 
-> make build-db
+> make build-dbs
 ```
 And wait till databases get ready for connections
 Then in separate terminal
