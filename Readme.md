@@ -1,4 +1,4 @@
-# To fresh run
+# For fresh run
 Execute in terminal
 ```
 > make fresh_run 
