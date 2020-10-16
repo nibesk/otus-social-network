@@ -15,7 +15,6 @@ type Message struct {
 	Thread_id primitive.ObjectID `bson:"thread_id"`
 	User_id   int                `bson:"from_user_id"`
 	CreatedAt time.Time          `bson:"created_at"`
-	UpdatedAt time.Time          `bson:"updated_at"`
 }
 
 const messagesDbName = "messages"
@@ -23,7 +22,6 @@ const messagesDbName = "messages"
 func MessageCreate(message *Message) error {
 	message.ID = primitive.NewObjectID()
 	message.CreatedAt = time.Now()
-	message.UpdatedAt = time.Now()
 
 	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
 	_, err := storage.Mongo.Db.Collection(messagesDbName).InsertOne(ctx, message)
