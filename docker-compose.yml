@@ -39,24 +39,6 @@ services:
     networks:
       - otus-social-network
 
-#  osn__chat_mongo:
-#    image: mongo:latest
-#    hostname: osn__chat_mongodb
-#    container_name: osn__chat_mongodb
-#    ports:
-#      - 27017:27017
-#    volumes:
-#      - ./service-chat/database/data:/data/db
-#      - ./service-chat/database/logs:/var/log/mongodb
-#      - ./service-chat/database/conf/mongo.conf:/etc/mongo.conf
-#      - ./service-chat/database/init:/init
-#    environment:
-#      - MONGO_INITDB_ROOT_USERNAME=root
-#      - MONGO_INITDB_ROOT_PASSWORD=mongo
-#    command: ["mongod", "-f", "/etc/mongo.conf", "--auth"]
-#    networks:
-#      - otus-social-network
-
   osn__chat_mongo_shard1:
     image: mongo:latest
     hostname: osn__chat_mongo_shard1
