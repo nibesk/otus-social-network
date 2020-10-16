@@ -4,12 +4,12 @@ Execute in terminal
 > make fresh_run 
 > make build-dbs
 ```
-And wait till databases get ready for connections
+And wait till databases get ready for connections\
 Then in separate terminal
 ```
 > make db_init
 ```
-Stop databases containers and then start other containers 
+Stop databases containers and then start all containers 
 ```
 > docker-compose down
 > docker-compose up --build -d
