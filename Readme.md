@@ -1,4 +1,5 @@
 # To fresh run
+Execute in terminal
 ```
 > make fresh_run 
 > make build-dbs
@@ -10,8 +11,8 @@ Then in separate terminal
 ```
 Stop databases containers and then start other containers 
 ```
-docker-compose down
-docker-compose up --build -d
+> docker-compose down
+> docker-compose up --build -d
 ```
 
 Open url in browser http://localhost:8080/
