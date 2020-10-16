@@ -127,6 +127,7 @@ services:
       - ./nginx/logs:/var/log/nginx
     depends_on:
       - osn__users_backend
+      - osn__chat_backend
     ports:
       - 8080:80
     networks:
@@ -137,8 +138,6 @@ services:
     build: frontend
     volumes:
       - ./frontend:/frontend
-    networks:
-      - otus-social-network
 
 networks:
   otus-social-network:

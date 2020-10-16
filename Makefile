@@ -30,6 +30,9 @@ users_db_fix_rights:
 	sudo chmod 777 -R service-users/database/master
 	sudo chmod 0444  service-users/database/master/conf.d/master.cnf
 
+users_backend_fix_rights:
+	sudo chmod 777 -R service-users/backend/logs
+
 #
 # Service chat
 #
@@ -67,7 +70,12 @@ chat_db_fix_rights:
 	sudo chmod 777 -R service-chat/database/cfg/data
 	sudo chmod 777 -R service-chat/database/cfg/logs
 
+chat_backend_fix_rights:
+	sudo chmod 777 -R service-chat/backend/logs
+
 db_init: users_db_init chat_db_init
-fix_rights: users_db_fix_rights chat_db_fix_rights
+fix_rights: users_db_fix_rights users_backend_fix_rights chat_db_fix_rights chat_backend_fix_rights
+
+fresh_run: db_init fix_rights
 
 
