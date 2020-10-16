@@ -1,0 +1,30 @@
+use chat;
+
+db.messages.insert({
+    "text" : "init collection text",
+    "user_id" : 0,
+    "thread_id" : ObjectId("5f872f4519ad743c2e625c71"),
+    "created_at" : ISODate("2020-10-13T18:47:21.705Z"),
+    "updated_at" : ISODate("2020-10-13T18:47:21.705Z")
+})
+db.messages.ensureIndex({thread_id: 1})
+
+db.threads.insert({
+    "respondent_user_id" : 0,
+    "initiator_user_id" : 0
+})
+db.threads.ensureIndex({
+    respondent_user_id: 1,
+    initiator_user_id: 1
+})
+
+use admin
+
+sh.enableSharding("chat")
+
+db.runCommand({
+    shardCollection: "chat.messages",
+    key: {thread_id: 1}
+})
+
+db.printShardingStatus()

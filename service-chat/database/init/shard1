@@ -1,0 +1,7 @@
+rs.initiate({
+    _id : "mongors_shard1",
+    members: [
+        { _id : 0, host : "osn__chat_mongo_shard1" },
+    ]
+})
+rs.status()

@@ -1,0 +1,9 @@
+rs.initiate({
+    _id: "mongors_cfg",
+    configsvr: true,
+    version: 1,
+    members: [
+        { _id: 0, host : "osn__chat_mongocfg"}
+    ]
+})
+rs.status()
