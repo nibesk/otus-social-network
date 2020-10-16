@@ -45,8 +45,6 @@ services:
     container_name: osn__chat_mongo_shard1
     ports:
       - 27003:27017
-#    expose:
-#      - "27017"
     volumes:
       - ./service-chat/database/shard1/data:/data/db
       - ./service-chat/database/shard1/logs:/var/log/mongodb
@@ -59,8 +57,6 @@ services:
 #    container_name: osn__chat_mongo_shard2
 #    ports:
 #      - 27004:27017
-#    expose:
-#      - "27017"
 #    command: mongod --shardsvr --replSet mongors_shard2 --dbpath /data/db --port 27017 --bind_ip 0.0.0.0
 
   osn__chat_mongocfg:
@@ -69,8 +65,6 @@ services:
     container_name: osn__chat_mongocfg
     ports:
       - 27001:27017
-#    expose:
-#      - "27017"
     volumes:
       - ./service-chat/database/cfg/data:/data/db
       - ./service-chat/database/cfg/logs:/var/log/mongodb
@@ -83,8 +77,6 @@ services:
     container_name: osn__chat_mongos
     ports:
       - 27100:27017
-#    expose:
-#      - "27017"
     command: mongos --configdb mongors_cfg/osn__chat_mongocfg:27017  --port 27017 --bind_ip 0.0.0.0
     volumes:
       - ./service-chat/database/init:/init
