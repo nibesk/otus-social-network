@@ -40,7 +40,7 @@ chat_db_init:
 	docker exec -i -t osn__chat_mongocfg sh -c "mongo < /init/cfg"
 	docker exec -i -t osn__chat_mongo_shard1  sh -c "mongo < /init/shard1"
 	docker exec -i -t osn__chat_mongo_shard2  sh -c "mongo < /init/shard2"
-	@echo "we need to wait 10-15 sec till mongos will get update from config"
+	@echo "------ wait 10-15 sec till mongos will get update from config ------"
 	sleep 15
 	docker exec -i -t osn__chat_mongos  sh -c "mongo < /init/mongos"
 	docker exec -i -t osn__chat_mongos  sh -c "mongo < /init/mongos_sharding_init"
