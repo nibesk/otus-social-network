@@ -76,6 +76,6 @@ chat_backend_fix_rights:
 db_init: users_db_init chat_db_init
 fix_rights: users_db_fix_rights users_backend_fix_rights chat_db_fix_rights chat_backend_fix_rights
 
-fresh_run: db_init fix_rights
+fresh_run: docker_network fix_rights
 
 

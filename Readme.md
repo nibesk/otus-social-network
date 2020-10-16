@@ -1,7 +1,6 @@
 # To fresh run
 ````
-> make docker_network 
-> make fix_rights 
+> make fresh_run 
 > docker-compose up --build -d
 > make db_init
 ````
