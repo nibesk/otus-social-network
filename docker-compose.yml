@@ -40,7 +40,7 @@ services:
       - otus-social-network
 
   osn__chat_mongo_shard1:
-    image: mongo:latest
+    image: 'mongo:4.4.1'
     hostname: osn__chat_mongo_shard1
     container_name: osn__chat_mongo_shard1
     ports:
@@ -52,7 +52,7 @@ services:
     command: mongod --shardsvr --replSet mongors_shard1 --dbpath /data/db --port 27017 --bind_ip 0.0.0.0
 
 #  osn__chat_mongo_shard2:
-#    image: mongo:latest
+#    image: 'mongo:4.4.1'
 #    hostname: osn__chat_mongo_shard2
 #    container_name: osn__chat_mongo_shard2
 #    ports:
@@ -60,7 +60,7 @@ services:
 #    command: mongod --shardsvr --replSet mongors_shard2 --dbpath /data/db --port 27017 --bind_ip 0.0.0.0
 
   osn__chat_mongocfg:
-    image: mongo:latest
+    image: 'mongo:4.4.1'
     hostname: osn__chat_mongocfg
     container_name: osn__chat_mongocfg
     ports:
@@ -72,7 +72,7 @@ services:
     command: mongod --configsvr --replSet mongors_cfg --dbpath /data/db --port 27017 --bind_ip 0.0.0.0
 
   osn__chat_mongos:
-    image: mongo:latest
+    image: 'mongo:4.4.1'
     hostname: osn__chat_mongos
     container_name: osn__chat_mongos
     ports:
