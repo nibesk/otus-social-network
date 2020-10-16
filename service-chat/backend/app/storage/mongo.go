@@ -18,11 +18,19 @@ type Conn struct {
 var Mongo *Conn
 
 func ConnectDb() *Conn {
-	cred := options.Credential{
-		Username: config.Env.DB.Username,
-		Password: config.Env.DB.Password,
+	var cred *options.Credential
+	if "" != config.Env.DB.Username && "" != config.Env.DB.Password {
+		cred = &options.Credential{
+			Username: config.Env.DB.Username,
+			Password: config.Env.DB.Password,
+		}
 	}
-	options := options.Client().ApplyURI(fmt.Sprintf("%s://%s", config.Env.DB.Dialect, config.Env.DB.Url)).SetAuth(cred)
+
+	options := options.Client().ApplyURI(fmt.Sprintf("%s://%s", config.Env.DB.Dialect, config.Env.DB.Url))
+	if nil != cred {
+		options.SetAuth(*cred)
+	}
+
 	client, err := mongo.NewClient(options)
 	if err != nil {
 		log.Fatal(err)
