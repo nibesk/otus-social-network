@@ -1,2 +1,3 @@
 sh.addShard("mongors_shard1/osn__chat_mongo_shard1")
+sh.addShard("mongors_shard2/osn__chat_mongo_shard2")
 sh.status()

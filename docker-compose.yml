@@ -48,16 +48,22 @@ services:
     volumes:
       - ./service-chat/database/shard1/data:/data/db
       - ./service-chat/database/shard1/logs:/var/log/mongodb
+      - ./service-chat/database/shard1/mongo.conf:/etc/mongo.conf
       - ./service-chat/database/init:/init
-    command: mongod --shardsvr --replSet mongors_shard1 --dbpath /data/db --port 27017 --bind_ip 0.0.0.0
+    command: mongod -f /etc/mongo.conf --shardsvr --replSet mongors_shard1 --dbpath /data/db --port 27017 --bind_ip 0.0.0.0
 
-#  osn__chat_mongo_shard2:
-#    image: 'mongo:4.4.1'
-#    hostname: osn__chat_mongo_shard2
-#    container_name: osn__chat_mongo_shard2
-#    ports:
-#      - 27004:27017
-#    command: mongod --shardsvr --replSet mongors_shard2 --dbpath /data/db --port 27017 --bind_ip 0.0.0.0
+  osn__chat_mongo_shard2:
+    image: 'mongo:4.4.1'
+    hostname: osn__chat_mongo_shard2
+    container_name: osn__chat_mongo_shard2
+    ports:
+      - 27004:27017
+    volumes:
+      - ./service-chat/database/shard2/data:/data/db
+      - ./service-chat/database/shard2/logs:/var/log/mongodb
+      - ./service-chat/database/shard2/mongo.conf:/etc/mongo.conf
+      - ./service-chat/database/init:/init
+    command: mongod -f /etc/mongo.conf --shardsvr --replSet mongors_shard2 --dbpath /data/db --port 27017 --bind_ip 0.0.0.0
 
   osn__chat_mongocfg:
     image: 'mongo:4.4.1'
@@ -68,8 +74,9 @@ services:
     volumes:
       - ./service-chat/database/cfg/data:/data/db
       - ./service-chat/database/cfg/logs:/var/log/mongodb
+      - ./service-chat/database/cfg/mongo.conf:/etc/mongo.conf
       - ./service-chat/database/init:/init
-    command: mongod --configsvr --replSet mongors_cfg --dbpath /data/db --port 27017 --bind_ip 0.0.0.0
+    command: mongod -f /etc/mongo.conf --configsvr --replSet mongors_cfg --dbpath /data/db --port 27017 --bind_ip 0.0.0.0
 
   osn__chat_mongos:
     image: 'mongo:4.4.1'
@@ -83,7 +90,7 @@ services:
     depends_on:
       - osn__chat_mongocfg
       - osn__chat_mongo_shard1
-#      - osn__chat_mongo_shard2
+      - osn__chat_mongo_shard2
 
   osn__chat_backend:
     container_name: osn__chat_backend
