@@ -1,9 +1,9 @@
 # To fresh run
 ````
 > make docker_network 
-> make fix-rights 
+> make fix_rights 
 > docker-compose up --build -d
-> make db-init
+> make db_init
 ````
 
 Open url in browser http://localhost:8080/

@@ -134,4 +134,4 @@ services:
 
 networks:
   otus-social-network:
-    external: false
+    external: true
