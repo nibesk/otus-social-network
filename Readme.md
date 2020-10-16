@@ -11,7 +11,7 @@ Then in separate terminal
 Stop database containers and then start other containers 
 ```
 docker-compose down
-docker-compose up -- build -d
+docker-compose up --build -d
 ```
 
 Open url in browser http://localhost:8080/

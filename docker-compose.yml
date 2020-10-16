@@ -111,7 +111,7 @@ services:
     depends_on:
       - osn__chat_mongos
     environment:
-      - DB_URL=osn__chat_mongos:27100
+      - DB_URL=osn__chat_mongos:27017
       - DB_NAME=chat
       - SERVER_PORT=3001
       - SERVICE_USERS_URL=http://osn__users_backend:3000
