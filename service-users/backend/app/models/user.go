@@ -200,8 +200,10 @@ func UserFindByUserIds(db storage.Queryable, userIds []int) ([]*User, error) {
 func UserFindFriendsForUser(db storage.Queryable, userId int) ([]*User, error) {
 	query, err := db.Query(
 		"SELECT u.* FROM user u "+
-			"JOIN user_relation ur ON u.user_id = ur.friend_user_id "+
-			"WHERE ur.user_id = ?", userId)
+			"LEFT JOIN user_relation ur ON u.user_id = ur.friend_user_id "+
+			"LEFT JOIN user_relation ur2 ON u.user_id = ur2.user_id "+
+			"WHERE ur.user_id = ? OR ur.friend_user_id = ? "+
+			"GROUP BY u.user_id", userId, userId)
 
 	if err != nil {
 		return nil, errors.WithStack(err)

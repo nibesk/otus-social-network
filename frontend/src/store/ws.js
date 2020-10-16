@@ -43,7 +43,7 @@ export default {
                     if ('chat' !== router.currentRoute.name) {
                         Vue.$toast.success(`New message from ${user.name}`, {
                             onClick() {
-                                console.log(`clicked msgs`);
+                                router.push({name: 'chat', params: {userId: user.user_id}})
                             }
                         });
                     }

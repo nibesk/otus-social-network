@@ -70,7 +70,7 @@ func UserRelationDelete(db storage.Executable, userId, friendUserId int) error {
 }
 
 func UserRelationFindByUserId(db storage.Queryable, userId int) ([]*UserRelation, error) {
-	query, err := db.Query("SELECT * FROM user_relation WHERE user_id = ?", userId)
+	query, err := db.Query("SELECT * FROM user_relation WHERE user_id = ? OR friend_user_id = ?", userId, userId)
 	if err != nil {
 		return nil, err
 	}

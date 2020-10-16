@@ -4,7 +4,7 @@ services:
 
   osn__users_backend:
     container_name: osn__users_backend
-    hostname: 'osn__users_backend'
+    hostname: osn__users_backend
     build: service-users/backend
     volumes:
       - ./service-users/backend:/backend
@@ -23,8 +23,8 @@ services:
 
   osn__users_mysql-master:
     image: 'mysql:5.7'
-    hostname: 'osn__users_mysql-master'
-    container_name: 'osn__users_mysql-master'
+    hostname: osn__users_mysql-master
+    container_name: osn__users_mysql-master
     ports:
       - 3307:3306
     volumes:
@@ -39,38 +39,90 @@ services:
     networks:
       - otus-social-network
 
-  osn__chat_mongo:
+#  osn__chat_mongo:
+#    image: mongo:latest
+#    hostname: osn__chat_mongodb
+#    container_name: osn__chat_mongodb
+#    ports:
+#      - 27017:27017
+#    volumes:
+#      - ./service-chat/database/data:/data/db
+#      - ./service-chat/database/logs:/var/log/mongodb
+#      - ./service-chat/database/conf/mongo.conf:/etc/mongo.conf
+#      - ./service-chat/database/init:/init
+#    environment:
+#      - MONGO_INITDB_ROOT_USERNAME=root
+#      - MONGO_INITDB_ROOT_PASSWORD=mongo
+#    command: ["mongod", "-f", "/etc/mongo.conf", "--auth"]
+#    networks:
+#      - otus-social-network
+
+  osn__chat_mongo_shard1:
     image: mongo:latest
-    hostname: 'otn-chat_mongodb'
-    container_name: 'otn-chat_mongodb'
+    hostname: osn__chat_mongo_shard1
+    container_name: osn__chat_mongo_shard1
     ports:
-      - 27017:27017
+      - 27003:27017
+#    expose:
+#      - "27017"
     volumes:
-      - ./service-chat/database/data:/data/db
-      - ./service-chat/database/logs:/var/log/mongodb
-      - ./service-chat/database/conf/mongo.conf:/etc/mongo.conf
+      - ./service-chat/database/shard1/data:/data/db
+      - ./service-chat/database/shard1/logs:/var/log/mongodb
       - ./service-chat/database/init:/init
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=root
-      - MONGO_INITDB_ROOT_PASSWORD=mongo
-    command: ["mongod", "-f", "/etc/mongo.conf", "--auth"]
-    networks:
-      - otus-social-network
+    command: mongod --shardsvr --replSet mongors_shard1 --dbpath /data/db --port 27017 --bind_ip 0.0.0.0
+
+#  osn__chat_mongo_shard2:
+#    image: mongo:latest
+#    hostname: osn__chat_mongo_shard2
+#    container_name: osn__chat_mongo_shard2
+#    ports:
+#      - 27004:27017
+#    expose:
+#      - "27017"
+#    command: mongod --shardsvr --replSet mongors_shard2 --dbpath /data/db --port 27017 --bind_ip 0.0.0.0
+
+  osn__chat_mongocfg:
+    image: mongo:latest
+    hostname: osn__chat_mongocfg
+    container_name: osn__chat_mongocfg
+    ports:
+      - 27001:27017
+#    expose:
+#      - "27017"
+    volumes:
+      - ./service-chat/database/cfg/data:/data/db
+      - ./service-chat/database/cfg/logs:/var/log/mongodb
+      - ./service-chat/database/init:/init
+    command: mongod --configsvr --replSet mongors_cfg --dbpath /data/db --port 27017 --bind_ip 0.0.0.0
+
+  osn__chat_mongos:
+    image: mongo:latest
+    hostname: osn__chat_mongos
+    container_name: osn__chat_mongos
+    ports:
+      - 27100:27017
+#    expose:
+#      - "27017"
+    command: mongos --configdb mongors_cfg/osn__chat_mongocfg:27017  --port 27017 --bind_ip 0.0.0.0
+    volumes:
+      - ./service-chat/database/init:/init
+    depends_on:
+      - osn__chat_mongocfg
+      - osn__chat_mongo_shard1
+#      - osn__chat_mongo_shard2
 
   osn__chat_backend:
     container_name: osn__chat_backend
-    hostname: 'osn__chat_backend'
+    hostname: osn__chat_backend
     build: service-chat/backend
     volumes:
       - ./service-chat/backend:/backend
     ports:
       - 3001:3001
     depends_on:
-      - osn__chat_mongo
+      - osn__chat_mongos
     environment:
-      - DB_URL=osn__chat_mongo:27017
-      - DB_USERNAME=root
-      - DB_PASSWORD=mongo
+      - DB_URL=osn__chat_mongos:27100
       - DB_NAME=chat
       - SERVER_PORT=3001
       - SERVICE_USERS_URL=http://osn__users_backend:3000
@@ -101,4 +153,4 @@ services:
 
 networks:
   otus-social-network:
-    external: true
+    external: false

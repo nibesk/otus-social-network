@@ -31,7 +31,11 @@ func (h *Handler) ApiGetAvailableFriendsHandler() error {
 
 	userRelationsMap := make(map[int]bool)
 	for _, relation := range userRelations {
-		userRelationsMap[relation.Friend_user_id] = true
+		if relation.User_id == userId {
+			userRelationsMap[relation.Friend_user_id] = true
+		} else {
+			userRelationsMap[relation.User_id] = true
+		}
 	}
 
 	usersPublic := make([]interface{}, len(users))
