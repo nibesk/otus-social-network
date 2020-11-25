@@ -16,14 +16,3 @@ db.threads.ensureIndex({
     respondent_user_id: 1,
     initiator_user_id: 1
 })
-
-use admin
-
-sh.enableSharding("chat")
-
-db.runCommand({
-    shardCollection: "chat.messages",
-    key: {thread_id: 1}
-})
-
-db.printShardingStatus()

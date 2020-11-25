@@ -15,6 +15,14 @@ type DbConnection struct {
 	cdb      *balancer.DB
 }
 
+func (c *DbConnection) GetDb() *sql.DB {
+	return c.cdb.Master()
+}
+
+func (c *DbConnection) GetCDb() *balancer.DB {
+	return c.cdb
+}
+
 type Queryable interface {
 	QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error)
 	Query(query string, args ...interface{}) (*sql.Rows, error)
@@ -30,7 +38,9 @@ type Executable interface {
 	Exec(query string, args ...interface{}) (sql.Result, error)
 }
 
-func ConnectDb() (*DbConnection, error) {
+var conn *DbConnection
+
+func ConnectDb() error {
 	dbConfig := config.Env.DB
 	dsnFormat := "%s:%s@tcp(%s)/%s?charset=%s&parseTime=True"
 	masterDSN := fmt.Sprintf(dsnFormat, dbConfig.Username, dbConfig.Password, dbConfig.MasterUrl, dbConfig.Database, dbConfig.Charset)
@@ -42,20 +52,22 @@ func ConnectDb() (*DbConnection, error) {
 
 	cdb, err := balancer.Open(dbConfig.Dialect, masterDSN, replicaDSNs)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	cdb.SetConnMaxLifetime(10 * time.Minute)
 	cdb.SetMaxIdleConns(25)
 	cdb.SetMaxOpenConns(25)
 
-	return &DbConnection{dbConfig: dbConfig, cdb: cdb}, nil
+	conn = &DbConnection{dbConfig: dbConfig, cdb: cdb}
+
+	return nil
 }
 
-func (c *DbConnection) GetDb() *sql.DB {
-	return c.cdb.Master()
+func GetDb() *sql.DB {
+	return conn.GetDb()
 }
 
-func (c *DbConnection) GetCDb() *balancer.DB {
-	return c.cdb
+func GetCDb() *balancer.DB {
+	return conn.GetCDb()
 }

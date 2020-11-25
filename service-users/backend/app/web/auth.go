@@ -11,11 +11,11 @@ import (
 	"strings"
 )
 
-var SessionAuthentication = func(next http.Handler) http.Handler {
+var Authentication = func(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		r, err := validateJwt(w, r)
 
-		if globals.NonAuthorizedOnlyRoutes[r.URL.Path] {
+		if globals.RoutesWithoutAuth[r.URL.Path] {
 			next.ServeHTTP(w, r)
 			return
 		}

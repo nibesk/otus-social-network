@@ -5,6 +5,7 @@ import (
 	"github.com/pkg/errors"
 	"service-users/app/handlers/requests"
 	"service-users/app/models"
+	"service-users/app/storage"
 	"service-users/app/utils"
 )
 
@@ -18,7 +19,7 @@ func (h *Handler) ApiLoginHandler() error {
 		return h.error(violations)
 	}
 
-	user, err := models.UserFindByEmail(h.db.GetDb(), request.Email)
+	user, err := models.UserFindByEmail(storage.GetDb(), request.Email)
 	switch true {
 	case errors.Is(err, sql.ErrNoRows):
 		return h.error("Password or email incorrect")
@@ -32,7 +33,7 @@ func (h *Handler) ApiLoginHandler() error {
 
 	if "" == user.Token.String {
 		token := utils.CreateJWTToken(uint(user.User_id))
-		err = user.UpdateToken(h.db.GetDb(), token)
+		err = user.UpdateToken(storage.GetDb(), token)
 		if nil != err {
 			return errors.Wrapf(err, "Can't update token")
 		}
@@ -46,7 +47,7 @@ func (h *Handler) ApiLoginHandler() error {
 func (h *Handler) ApiLogoutHandler() error {
 	userId, _ := h.getAuthUserId()
 
-	user, err := models.UserFindById(h.db.GetDb(), userId)
+	user, err := models.UserFindById(storage.GetDb(), userId)
 	switch true {
 	case errors.Is(err, sql.ErrNoRows):
 		return h.success(map[string]interface{}{"user": nil})
@@ -54,7 +55,7 @@ func (h *Handler) ApiLogoutHandler() error {
 		return err
 	}
 
-	err = user.UpdateToken(h.db.GetDb(), nil)
+	err = user.UpdateToken(storage.GetDb(), nil)
 	if nil != err {
 		return errors.Wrapf(err, "Can't update token")
 	}
@@ -68,7 +69,7 @@ func (h *Handler) ApiGetUserHandler() error {
 		return h.success(map[string]interface{}{"user": nil})
 	}
 
-	user, err := models.UserFindById(h.db.GetDb(), userId)
+	user, err := models.UserFindById(storage.GetDb(), userId)
 	switch true {
 	case errors.Is(err, sql.ErrNoRows):
 		return h.success(map[string]interface{}{"user": nil})
@@ -100,7 +101,7 @@ func (h *Handler) ApiRegisterHandler() error {
 		return err
 	}
 
-	tr, err := h.db.GetDb().Begin()
+	tr, err := storage.GetDb().Begin()
 	if nil != err {
 		return errors.WithStack(err)
 	}

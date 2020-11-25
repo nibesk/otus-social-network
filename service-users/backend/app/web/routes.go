@@ -43,5 +43,5 @@ func initRoutes(d Dispatcher) {
 		return h.ApiGetUserHandler()
 	}))
 
-	d.Router.Use(SessionAuthentication)
+	d.Router.Use(Authentication)
 }

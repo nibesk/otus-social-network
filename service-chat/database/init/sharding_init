@@ -1,0 +1,10 @@
+use admin
+
+sh.enableSharding("chat")
+
+db.runCommand({
+    shardCollection: "chat.messages",
+    key: {thread_id: 1}
+})
+
+db.printShardingStatus()

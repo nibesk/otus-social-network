@@ -11,8 +11,8 @@ const ApiFriendsRoute = "/api/users/friends"
 const ApiRemoveFriendsRoute = "/api/users/friends/remove"
 const ApiAvailableFriendRoute = "/api/users/availableFriends"
 
-//List of endpoints that require auth
-var NonAuthorizedOnlyRoutes = map[string]bool{
+//List of endpoints that do not require auth
+var RoutesWithoutAuth = map[string]bool{
 	ApiLoginRoute:    true,
 	ApiRegisterRoute: true,
 	ApiGetUserRoute:  true,

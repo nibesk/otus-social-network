@@ -6,25 +6,21 @@ import (
 	"log"
 	"net/http"
 	"runtime/debug"
-	"service-users/app/config"
 	"service-users/app/customErrors"
 	"service-users/app/handlers"
-	"service-users/app/storage"
 	"service-users/app/utils"
 )
 
 type Dispatcher struct {
 	Router *mux.Router
-	db     *storage.DbConnection
 }
 
-func InitDispatcher(db *storage.DbConnection, config *config.Config) Dispatcher {
+func InitDispatcher() Dispatcher {
 	router := mux.NewRouter()
 	router.NotFoundHandler = NotFoundHandler
 
 	dispatcher := Dispatcher{
 		Router: router,
-		db:     db,
 	}
 
 	initRoutes(dispatcher)
@@ -59,7 +55,7 @@ func (d *Dispatcher) Run(host string) {
 
 func (d *Dispatcher) handleRequest(handlerMethod func(h *handlers.Handler) error) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		h := handlers.InitHandler(d.db, w, r)
+		h := handlers.InitHandler(w, r)
 		defer func() {
 			if r := recover(); r != nil {
 				log.Printf("Panic recovered in f: %w; Stack trace %s", r, string(debug.Stack()))

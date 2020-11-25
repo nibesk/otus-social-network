@@ -2,6 +2,9 @@ version: '3'
 
 services:
 
+#
+# service users
+#
   osn__users_backend:
     container_name: osn__users_backend
     hostname: osn__users_backend
@@ -39,66 +42,89 @@ services:
     networks:
       - otus-social-network
 
-  osn__chat_mongo_shard1:
+#
+# service chat
+#
+
+## <<<< POSSIBLE MONGO sharding
+#  osn__chat_mongo_shard1:
+#    image: 'mongo:4.4.1'
+#    hostname: osn__chat_mongo_shard1
+#    container_name: osn__chat_mongo_shard1
+#    ports:
+#      - 27003:27017
+#    volumes:
+#      - ./service-chat/database/shard1/data:/data/db
+#      - ./service-chat/database/shard1/logs:/var/log/mongodb
+#      - ./service-chat/database/shard1/mongo.conf:/etc/mongo.conf
+#      - ./service-chat/database/init:/init
+#    command: mongod -f /etc/mongo.conf --shardsvr --replSet mongors_shard1 --dbpath /data/db --port 27017 --bind_ip 0.0.0.0
+#    networks:
+#      - otus-social-network
+#
+#  osn__chat_mongo_shard2:
+#    image: 'mongo:4.4.1'
+#    hostname: osn__chat_mongo_shard2
+#    container_name: osn__chat_mongo_shard2
+#    ports:
+#      - 27004:27017
+#    volumes:
+#      - ./service-chat/database/shard2/data:/data/db
+#      - ./service-chat/database/shard2/logs:/var/log/mongodb
+#      - ./service-chat/database/shard2/mongo.conf:/etc/mongo.conf
+#      - ./service-chat/database/init:/init
+#    command: mongod -f /etc/mongo.conf --shardsvr --replSet mongors_shard2 --dbpath /data/db --port 27017 --bind_ip 0.0.0.0
+#    networks:
+#      - otus-social-network
+#
+#  osn__chat_mongocfg:
+#    image: 'mongo:4.4.1'
+#    hostname: osn__chat_mongocfg
+#    container_name: osn__chat_mongocfg
+#    ports:
+#      - 27001:27017
+#    volumes:
+#      - ./service-chat/database/cfg/data:/data/db
+#      - ./service-chat/database/cfg/logs:/var/log/mongodb
+#      - ./service-chat/database/cfg/mongo.conf:/etc/mongo.conf
+#      - ./service-chat/database/init:/init
+#    command: mongod -f /etc/mongo.conf --configsvr --replSet mongors_cfg --dbpath /data/db --port 27017 --bind_ip 0.0.0.0
+#    networks:
+#      - otus-social-network
+#
+#  osn__chat_mongos:
+#    image: 'mongo:4.4.1'
+#    hostname: osn__chat_mongos
+#    container_name: osn__chat_mongos
+#    ports:
+#      - 27100:27017
+#    command: mongos --configdb mongors_cfg/osn__chat_mongocfg:27017  --port 27017 --bind_ip 0.0.0.0
+#    volumes:
+#      - ./service-chat/database/init:/init
+#    depends_on:
+#      - osn__chat_mongocfg
+#      - osn__chat_mongo_shard1
+#      - osn__chat_mongo_shard2
+#    networks:
+#      - otus-social-network
+## >>>> POSSIBLE MONGO sharding
+
+## <<<< POSSIBLE MONGO standalone
+  osn__chat_mongo:
     image: 'mongo:4.4.1'
-    hostname: osn__chat_mongo_shard1
-    container_name: osn__chat_mongo_shard1
+    hostname: osn__chat_mongo
+    container_name: osn__chat_mongo
     ports:
-      - 27003:27017
+      - 27017:27017
     volumes:
       - ./service-chat/database/shard1/data:/data/db
       - ./service-chat/database/shard1/logs:/var/log/mongodb
       - ./service-chat/database/shard1/mongo.conf:/etc/mongo.conf
       - ./service-chat/database/init:/init
-    command: mongod -f /etc/mongo.conf --shardsvr --replSet mongors_shard1 --dbpath /data/db --port 27017 --bind_ip 0.0.0.0
+    command: mongod -f /etc/mongo.conf --dbpath /data/db --port 27017 --bind_ip 0.0.0.0
     networks:
       - otus-social-network
-
-  osn__chat_mongo_shard2:
-    image: 'mongo:4.4.1'
-    hostname: osn__chat_mongo_shard2
-    container_name: osn__chat_mongo_shard2
-    ports:
-      - 27004:27017
-    volumes:
-      - ./service-chat/database/shard2/data:/data/db
-      - ./service-chat/database/shard2/logs:/var/log/mongodb
-      - ./service-chat/database/shard2/mongo.conf:/etc/mongo.conf
-      - ./service-chat/database/init:/init
-    command: mongod -f /etc/mongo.conf --shardsvr --replSet mongors_shard2 --dbpath /data/db --port 27017 --bind_ip 0.0.0.0
-    networks:
-      - otus-social-network
-
-  osn__chat_mongocfg:
-    image: 'mongo:4.4.1'
-    hostname: osn__chat_mongocfg
-    container_name: osn__chat_mongocfg
-    ports:
-      - 27001:27017
-    volumes:
-      - ./service-chat/database/cfg/data:/data/db
-      - ./service-chat/database/cfg/logs:/var/log/mongodb
-      - ./service-chat/database/cfg/mongo.conf:/etc/mongo.conf
-      - ./service-chat/database/init:/init
-    command: mongod -f /etc/mongo.conf --configsvr --replSet mongors_cfg --dbpath /data/db --port 27017 --bind_ip 0.0.0.0
-    networks:
-      - otus-social-network
-
-  osn__chat_mongos:
-    image: 'mongo:4.4.1'
-    hostname: osn__chat_mongos
-    container_name: osn__chat_mongos
-    ports:
-      - 27100:27017
-    command: mongos --configdb mongors_cfg/osn__chat_mongocfg:27017  --port 27017 --bind_ip 0.0.0.0
-    volumes:
-      - ./service-chat/database/init:/init
-    depends_on:
-      - osn__chat_mongocfg
-      - osn__chat_mongo_shard1
-      - osn__chat_mongo_shard2
-    networks:
-      - otus-social-network
+##  >>>> POSSIBLE MONGO standalone
 
   osn__chat_backend:
     container_name: osn__chat_backend
@@ -109,15 +135,19 @@ services:
     ports:
       - 3001:3001
     depends_on:
-      - osn__chat_mongos
+#      - osn__chat_mongos # POSSIBLE MONGO sharding
+      - osn__chat_mongo   # POSSIBLE MONGO standalone
     environment:
-      - DB_URL=osn__chat_mongos:27017
+#      - DB_URL=osn__chat_mongos:27017 # POSSIBLE MONGO sharding
+      - DB_URL=osn__chat_mongo:27017   # POSSIBLE MONGO standalone
       - DB_NAME=chat
       - SERVER_PORT=3001
       - SERVICE_USERS_URL=http://osn__users_backend:3000
     networks:
       - otus-social-network
-
+#
+# nginx
+#
   osn__nginx:
     container_name: osn_nginx
     image: nginx:latest
@@ -133,6 +163,26 @@ services:
     networks:
       - otus-social-network
 
+#
+# RabbitMQ
+#
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
+    volumes:
+      - ./rabbitmq/etc:/etc/rabbitmq
+      - ./rabbitmq/data:/var/lib/rabbitmq
+      - ./rabbitmq/logs:/var/log/rabbitmq
+    environment:
+      RABBITMQ_ERLANG_COOKIE: wu4YDGF86tMDTBcBhoh
+      RABBITMQ_DEFAULT_USER: rabbitmq
+      RABBITMQ_DEFAULT_PASS: rabbitmq
+    ports:
+      - 5672:5672
+      - 15672:15672
+#
+# frontend
+#
   osn__npm:
     container_name: osn__npm
     build: frontend

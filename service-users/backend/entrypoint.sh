@@ -4,4 +4,4 @@ go get -d -v && \
 go install -v && \
 go build -o ../build
 
-../build 2>&1 | tee -i logs/log
+../build server 2>&1 | tee -i logs/log

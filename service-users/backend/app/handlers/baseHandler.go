@@ -12,14 +12,12 @@ import (
 )
 
 type Handler struct {
-	db      *storage.DbConnection
 	writer  http.ResponseWriter
 	request *http.Request
 }
 
-func InitHandler(db *storage.DbConnection, w http.ResponseWriter, r *http.Request) *Handler {
+func InitHandler(w http.ResponseWriter, r *http.Request) *Handler {
 	return &Handler{
-		db:      db,
 		writer:  w,
 		request: r,
 	}
@@ -96,7 +94,7 @@ func (h *Handler) getAuthUser() (*models.User, error) {
 		return nil, ErrNoAuthUserId
 	}
 
-	user, err := models.UserFindById(h.db.GetDb(), int(userId))
+	user, err := models.UserFindById(storage.GetDb(), int(userId))
 	if nil != err {
 		return nil, errors.WithStack(err)
 	}

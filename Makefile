@@ -36,14 +36,21 @@ users_backend_fix_rights:
 #
 # Service chat
 #
-chat_db_init:
+chat_db_init: chat_db_init_single_db
+
+chat_db_init_single_db:
+	docker exec -i -t osn__chat_mongo  sh -c "mongo < /init/default_collections_init"
+
+# chat db sharded version
+chat_db_init_sharded_db:
 	docker exec -i -t osn__chat_mongocfg sh -c "mongo < /init/cfg"
 	docker exec -i -t osn__chat_mongo_shard1  sh -c "mongo < /init/shard1"
 	docker exec -i -t osn__chat_mongo_shard2  sh -c "mongo < /init/shard2"
 	@echo "------ wait 10-15 sec till mongos will get update from config ------"
 	sleep 15
 	docker exec -i -t osn__chat_mongos  sh -c "mongo < /init/mongos"
-	docker exec -i -t osn__chat_mongos  sh -c "mongo < /init/mongos_sharding_init"
+	docker exec -i -t osn__chat_mongos  sh -c "mongo < /init/default_collections_init"
+	docker exec -i -t osn__chat_mongos  sh -c "mongo < /init/sharding_init"
 
 chat_db_clear:
 	@echo '------shard1------'
@@ -79,8 +86,24 @@ chat_backend_fix_rights:
 build-dbs:
 	docker-compose up osn__users_mysql-master osn__chat_mongos
 
+#
+# RabbitMQ
+#
+rabbit-clear:
+	sudo rm -rf rabbitmq/data/*
+	touch rabbitmq/data/.gitkeep
+	sudo rm -rf rabbitmq/logs/*
+	touch rabbitmq/logs/.gitkeep
+	sudo rm -rf rabbitmq/etc/*
+	touch rabbitmq/etc/.gitkeep
+
+rabbit-fix-rights:
+	sudo chmod 777 -R rabbitmq/data
+	sudo chmod 777 -R rabbitmq/logs
+	sudo chmod 777 -R rabbitmq/etc
+
 db_init: users_db_init chat_db_init
-fix_rights: users_db_fix_rights users_backend_fix_rights chat_db_fix_rights chat_backend_fix_rights
+fix_rights: users_db_fix_rights users_backend_fix_rights chat_db_fix_rights chat_backend_fix_rights rabbit-fix-rights
 fresh_run: docker_network fix_rights
 
 
